@@ -1,4 +1,4 @@
-# panditas <img height="50" src="https://raw.githubusercontent.com/ivansabik/panditas/master/doc/icon.png" />
+# panditas <img height="55" src="https://raw.githubusercontent.com/ivansabik/panditas/master/doc/icon.png" />
 
 Builder and scheduler of data flows using Pandas and S3
 
