@@ -1,10 +1,8 @@
 # <img height="45" src="https://raw.githubusercontent.com/ivansabik/panditas/master/doc/icon.png" /> panditas
 
-Data Pipelines builder and scheduler using Pandas and S3
+Build Data Pipelines using Pandas and S3
 
 ### Models
-
-<img src="https://raw.githubusercontent.com/ivansabik/panditas/master/doc/sample_data_pipeline.png" />
 
 #### Setting
 
@@ -32,6 +30,14 @@ Data Pipelines builder and scheduler using Pandas and S3
 
 #### Data Transformation
 
+They all have:
+- DF Inputs
+- DF Input resulting from the output of other transformation
+- One DF output
+
+Only 1 or 2 inputs are allowed for DF to Transformation and Only 1 input is allowed for Transformation to Transformation
+
+Available transformations include:
 - Calculated Column
 - Columns Subset
 - Conditional Fill
@@ -50,10 +56,46 @@ Data Pipelines builder and scheduler using Pandas and S3
 
 
 
+#### Operators
+
+These have access to an Input Data Frame and the graph parameters.
+- Email
+- Slack
+- FTP
+- ZIP
+
 #### Data Pipeline Graph
 
+- Start Date
+- End Date
+- Initial Run
+- Running Interval
 - Parameters (Start Date, End Date, Year, Agency Number, Claim Number, Policy Number, etc)
 
+These can be run:
+- As a python bin script
+- As a docker command
+
+### Example
+
+<img src="https://raw.githubusercontent.com/ivansabik/panditas/master/doc/sample_data_pipeline.png" />
+
+```python
+import panditas
+
+pipeline = panditas.Graph()
+
+claims = panditas.InputDataFrame()
+policies = panditas.InputDataFrame()
+inforce_premium = panditas.InputDataFrame()
+pipeline.add_input_df(claims)
+pipeline.add_input_df(policies)
+pipeline.add_input_df(inforce_premium)
+
+merge_1 =
+pipeline.add_transformation(merge_1, left_df=claims, right_df=policies)
+pipeline.add_transformation(merge_2, left_df=claims, right_df=policies)
+```
 
 ### Credits
 
