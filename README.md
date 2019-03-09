@@ -4,13 +4,15 @@ Build Data Pipelines using Pandas and S3
 
 ### Models
 
-#### Setting
+<img src="https://raw.githubusercontent.com/ivansabik/panditas/master/doc/models.png" />
+
+#### Configuration (settings)
 
 - S3 Host
 - AWS Secret Key
 - AWS Access Key
 
-#### Input DataFrame
+#### Data Set
 
 - Date Columns
 - Data Types by Column
@@ -44,7 +46,6 @@ Available transformations include:
 - Constant Column
 - Filter
 - Format Columns (Currency, Date, etc)
-- Merge
 - Pivot Table (for grouping by)
 - Remove Duplicates
 - Rename Column
@@ -52,19 +53,9 @@ Available transformations include:
 - Sort by Columns
 - Value Mapper
 
-#### Output DataFrame
+#### Merge Rule
 
-
-
-#### Operators
-
-These have access to an Input Data Frame and the graph parameters.
-- Email
-- Slack
-- FTP
-- ZIP
-
-#### Data Pipeline Graph
+#### Data Pipeline
 
 - Start Date
 - End Date
