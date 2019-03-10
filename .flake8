@@ -1,0 +1,5 @@
+[flake8]
+ignore = E, W
+max-complexity = 10
+filename = *.py
+format = default
