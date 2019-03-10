@@ -1,4 +1,6 @@
-# <img height="45" src="https://raw.githubusercontent.com/ivansabik/panditas/master/doc/icon.png" /> panditas
+# <img height="30" src="https://raw.githubusercontent.com/ivansabik/panditas/master/doc/icon.png" /><img height="30" src="https://raw.githubusercontent.com/ivansabik/panditas/master/doc/icon.png" /> Panditas <img height="30" src="https://raw.githubusercontent.com/ivansabik/panditas/master/doc/icon.png" /><img height="30" src="https://raw.githubusercontent.com/ivansabik/panditas/master/doc/icon.png" />
+
+<img src="https://travis-ci.com/ivansabik/panditas.svg?branch=master"/>
 
 Build Data Pipelines using Pandas and S3. Initially this will support the following executors:
 - [Dagobah](https://github.com/thieman/dagobah)
