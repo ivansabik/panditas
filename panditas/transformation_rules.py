@@ -25,6 +25,7 @@ class ConditionalFill(TransformationRule):
     fill_value = None
     where_columns = None
     where_condition = None
+    where_condition_value = None
 
 
 class ConstantColumn(TransformationRule):
@@ -48,7 +49,6 @@ class MapValues(TransformationRule):
 
 
 class PivotTable(TransformationRule):
-    group_columns = None
     GROUP_FUNCTIONS = [
         "alpha max",
         "alpha min",
@@ -62,7 +62,10 @@ class PivotTable(TransformationRule):
         "sum",
         "unique",
     ]
+
+    group_columns = None
     group_functions = None
+    group_values = None
     preserve_order = True
 
 

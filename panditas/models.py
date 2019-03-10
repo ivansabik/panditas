@@ -15,7 +15,14 @@ class DataFlowStep:
     input_data_set = None
     output_data_set = pd.DataFrame()
 
+    def _set_dependencies():
+        # DataSets do not have dependencies, they can be sourced in parallel
+        # Single Merge have dependencies on the left and right data sets
+        # Multiple Merge have dependencies on all the data sets
+        pass
+
     def run(self):
+        # Save output to CSV or SQL
         pass
 
 
@@ -41,6 +48,22 @@ class DataSet(DataFlowStep):
 
     def get(self):
         self.output_data_set = pd.DataFrame()
+
+    def _get_columns(self):
+        self.columns = []
+
+    def _get_data_types(self):
+        self.data_types = {}
+
+
+class MergeMultipleRule(DataFlowStep):
+    data_sets = []
+    merge_types = []
+
+    def merge(self):
+        base_df = self.data_sets.pop(0)
+        for key, data_set in enumerate(self.data_sets):
+            base_df = base_df.merge(data_set, how=self.merge_types[key])
 
 
 class MergeRule(DataFlowStep):

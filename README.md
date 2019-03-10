@@ -1,9 +1,10 @@
 # <img height="45" src="https://raw.githubusercontent.com/ivansabik/panditas/master/doc/icon.png" /> panditas
 
-Build Data Pipelines using Pandas and S3. Initially this will support two job runners:
-- Local
+Build Data Pipelines using Pandas and S3. Initially this will support the following executors:
+- Dagobah
 - Apache Airflow
 - AWS Batch
+- Luigi
 
 ### Models
 
@@ -52,34 +53,13 @@ Available transformations include:
 
 #### Merge Rule
 
-#### Data Pipeline
+#### Data Flow
 
 - Start Date
 - End Date
 - Initial Run
 - Running Interval
 - Parameters (Start Date, End Date, Year, Agency Number, Claim Number, Policy Number, etc)
-
-### Example
-
-<img src="https://raw.githubusercontent.com/ivansabik/panditas/master/doc/sample_data_pipeline.png" />
-
-```python
-import panditas
-
-pipeline = panditas.Graph()
-
-claims = panditas.InputDataFrame()
-policies = panditas.InputDataFrame()
-inforce_premium = panditas.InputDataFrame()
-pipeline.add_input_df(claims)
-pipeline.add_input_df(policies)
-pipeline.add_input_df(inforce_premium)
-
-merge_1 =
-pipeline.add_transformation(merge_1, left_df=claims, right_df=policies)
-pipeline.add_transformation(merge_2, left_df=claims, right_df=policies)
-```
 
 ### Credits
 
