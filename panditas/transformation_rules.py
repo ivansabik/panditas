@@ -1,4 +1,4 @@
-from ..models import TransformationRule
+from models import TransformationRule
 
 
 class CalculatedColumn(TransformationRule):
@@ -26,6 +26,10 @@ class MapValues(TransformationRule):
 
 
 class PivotTable(TransformationRule):
+    pass
+
+
+class RemoveColumns(TransformationRule):
     pass
 
 
