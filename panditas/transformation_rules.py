@@ -43,16 +43,26 @@ class ConditionalFill(TransformationRule):
     where_condition = None
     where_condition_value = None
 
-    def __init__(self):
-        pass
+    def __init__(
+        self, fill_column=None, fill_value=None, name=None, where_columns=None,
+        where_condition=None, where_condition_value=None
+    ):
+        self.fill_column = fill_column
+        self.fill_value = fill_value
+        self.name = name
+        self.where_columns = where_columns
+        self.where_condition = where_condition
+        self.where_condition_value = where_condition_value
 
 
 class ConstantColumn(TransformationRule):
     column_name = None
     column_value = None
 
-    def __init__(self):
-        pass
+    def __init__(self, column_name=None, column_value=None, name=None):
+        self.column_name = column_name
+        self.column_value = column_value
+        self.name = name
 
 
 class FilterBy(TransformationRule):
@@ -85,8 +95,15 @@ class PivotTable(TransformationRule):
     group_values = None
     preserve_order = True
 
-    def __init__(self):
-        pass
+    def __init__(
+        self, group_columns=None, group_functions=None, group_values=None,
+        name=None, preserve_order=True
+    ):
+        self.group_columns = group_columns
+        self.group_functions = group_functions
+        self.group_values = group_values
+        self.name = name
+        self.preserve_order = preserve_order
 
 
 class RemoveColumns(TransformationRule):

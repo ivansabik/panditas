@@ -4,6 +4,7 @@ from panditas.transformation_rules import ConditionalFill, ConstantColumn, Pivot
 
 def test_insurance_agency_experience():
     data_flow = DataFlow(
+        name="Agency Experience",
         steps=[
             DataSet(
                 columns=["revisionId", "lossReserveBalance", "claimStatus"],
@@ -127,7 +128,7 @@ def test_insurance_agency_experience():
                     "policyInforcePremium",
                 ],
                 group_functions=["sum", "last", "sum", "sum", "sum", "sum", "max"],
-                name="",
+                name="group_by_agency_line",
             ),
         ]
     )
