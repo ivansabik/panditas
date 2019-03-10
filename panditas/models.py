@@ -25,8 +25,8 @@ class DataSet(DataFlowStep):
     data_types = {}
     db_host = None
     db_pass = None
-    db_port = None
-    db_provider = None
+    db_port = 3306
+    db_provider = "mysql"
     db_user = None
     local_path = None
     name = None

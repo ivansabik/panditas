@@ -1,53 +1,95 @@
 from models import TransformationRule
 
+CHECK_CONDITIONS = [
+    "equals",
+    "does not equal",
+    "contains",
+    "does not contain",
+    "starts with",
+    "does not start with",
+    "ends with",
+]
+
 
 class CalculatedColumn(TransformationRule):
-    pass
+    column_name = None
+    expression = None
+    insert_position = -1
+
+    def _validate_expression(self):
+        pass
 
 
 class ConditionalFill(TransformationRule):
-    pass
+    fill_column = None
+    fill_value = None
+    where_columns = None
+    where_condition = None
 
 
 class ConstantColumn(TransformationRule):
-    pass
+    column_name = None
+    column_value = None
 
 
 class FilterBy(TransformationRule):
-    pass
+    column_name = None
+    filter_conditions = None
 
 
 class FormatColumns(TransformationRule):
-    pass
+    column_formats = None
 
 
 class MapValues(TransformationRule):
-    pass
+    default_map_value = None
+    map_column = None
+    map_values = None
 
 
 class PivotTable(TransformationRule):
-    pass
+    group_columns = None
+    GROUP_FUNCTIONS = [
+        "alpha max",
+        "alpha min",
+        "concatenate",
+        "count",
+        "first",
+        "first filled",
+        "last",
+        "max",
+        "min",
+        "sum",
+        "unique",
+    ]
+    group_functions = None
+    preserve_order = True
 
 
 class RemoveColumns(TransformationRule):
-    pass
+    column_names = None
 
 
 class RemoveDuplicateRows(TransformationRule):
-    pass
+    columns_subset = None
 
 
 class RenameColumns(TransformationRule):
-    pass
+    columns = None
 
 
 class ReplaceText(TransformationRule):
-    pass
+    column = None
+    replace_pattern = None
+    replace_pattern_is_regex = False
+    replace_value = None
+    replace_column = None
 
 
-class SelectedColumn(TransformationRule):
-    pass
+class SelectColumns(TransformationRule):
+    columns = None
 
 
 class SortValuesBy(TransformationRule):
-    pass
+    sort_columns = None
+    sort_ascending = None

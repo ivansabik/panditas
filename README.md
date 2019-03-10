@@ -1,22 +1,19 @@
 # <img height="45" src="https://raw.githubusercontent.com/ivansabik/panditas/master/doc/icon.png" /> panditas
 
-Build Data Pipelines using Pandas and S3
+Build Data Pipelines using Pandas and S3. Initially this will support two job runners:
+- Local
+- Apache Airflow
+- AWS Batch
 
 ### Models
 
 <img src="https://raw.githubusercontent.com/ivansabik/panditas/master/doc/models.png" />
 
-#### Configuration (settings)
-
-- S3 Host
-- AWS Secret Key
-- AWS Access Key
-
 #### Data Set
 
 - Date Columns
 - Data Types by Column
-- Format (CSV, Excel, SQL)
+- Source (CSV, Excel, SQL)
 - Local path
 - Preview Rows
 - Row count
@@ -62,10 +59,6 @@ Available transformations include:
 - Initial Run
 - Running Interval
 - Parameters (Start Date, End Date, Year, Agency Number, Claim Number, Policy Number, etc)
-
-These can be run:
-- As a python bin script
-- As a docker command
 
 ### Example
 
