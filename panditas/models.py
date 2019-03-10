@@ -6,6 +6,9 @@ class DataFlow:
     name = None
     steps = []
 
+    def __init__(self):
+        pass
+
     def run(self):
         pass
 
@@ -47,6 +50,9 @@ class DataSet(DataFlowStep):
     sql_query = None
     table_name = None
 
+    def __init__(self):
+        pass
+
     def get(self):
         self.output_data_set = pd.DataFrame()
 
@@ -61,6 +67,9 @@ class MergeMultipleRule(DataFlowStep):
     data_sets = []
     merge_types = []
 
+    def __init__(self):
+        pass
+
     def merge(self):
         base_df = self.data_sets.pop(0)
         for key, data_set in enumerate(self.data_sets):
@@ -74,6 +83,9 @@ class MergeRule(DataFlowStep):
     merge_columns = None
     merge_columns_left = None
     merge_columns_right = None
+
+    def __init__(self):
+        pass
 
     def merge(self):
         self.output_data_set = pd.merge(

@@ -1,6 +1,7 @@
 from panditas.models import DataFlow, DataSet, MergeMultipleRule
+from panditas.transformation_rules import ConditionalFill, ConstantColumn, PivotTable
 
-DataFlow(steps=[
+data_flow = DataFlow(steps=[
     DataSet(
         columns=["revisionId", "lossReserveBalance", "claimStatus"],
         local_path="claims.csv",
@@ -47,7 +48,7 @@ DataFlow(steps=[
     ),
     # Claim Count
     ConstantColumn(
-        column_name="claimCount"
+        column_name="claimCount",
         column_value=0,
         name="add_claim_count_column"
     ),
@@ -120,4 +121,4 @@ DataFlow(steps=[
         group_functions=["sum", "last", "sum", "sum", "sum", "sum", "max"],
         name="",
     )
-]).run()
+])
