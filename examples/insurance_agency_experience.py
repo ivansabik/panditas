@@ -15,8 +15,8 @@ DataFlow(steps=[
     ),
     DataSet(
         columns=[
-            "revisionId", "policyId", "policyInforcePremium",
-            "policyChangeTransactionType", "policyChangeWrittenPremium"
+            "revisionId", "policyId", "policyChangeTransactionType",
+            "policyChangeWrittenPremium"
         ],
         local_path="policy_changes.csv",
         name="transactions",
@@ -56,7 +56,7 @@ DataFlow(steps=[
         where_condition="contains"
         where_condition_value="Open"
     ),
-    # Policy Count
+    # Policy New
     ConstantColumn(
         column_name="newCount"
         column_value=0
@@ -78,6 +78,7 @@ DataFlow(steps=[
         where_condition="equals"
         where_condition_value="New"
     ),
+    # Policy cancel
     ConstantColumn(
         column_name="cancelCount"
         column_value=0
