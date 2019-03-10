@@ -4,6 +4,7 @@ import pandas as pd
 class DataFlow:
     custom_params = {}
     name = None
+    output_data_set = pd.DataFrame()
     steps = []
 
     def __init__(self, name=None, steps=[]):
