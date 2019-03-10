@@ -1,45 +1,47 @@
 from panditas.models import DataFlow, DataSet, MergeMultipleRule
 
 DataFlow(steps=[
-    MergeMultipleRule(
-        data_sets=[
-            DataSet(
-                columns=[],
-                local_path = "claims.csv",
-                name = "Claims",
-                source = "csv"
-            ),
-            DataSet(
-                columns=[],
-                local_path = "policy_state.csv",
-                name = "In Force Policies",
-                source = "csv"
-            ),
-            DataSet(
-                columns=[],
-                local_path = "policy_changes.csv",
-                name = "Policy Transactions",
-                source = "csv"
-            ),
-            DataSet(
-                columns=[],
-                local_path = "policies.csv",
-                name = "Policies",
-                source = "csv"
-            ),
-            DataSet(
-                columns=[],
-                local_path = "agencies.csv",
-                name = "Agencies",
-                source = "csv"
-            ),
-            DataSet(
-                columns=[],
-                local_path = "lines.csv",
-                name = "Lines",
-                source = "csv"
-            )
+    DataSet(
+        columns=["revisionId", "lossReserveBalance", "claimStatus"],
+        local_path="claims.csv",
+        name="claims",
+        source="csv"
+    ),
+    DataSet(
+        columns=["revisionId", "policyId", "policyInforcePremium"],
+        local_path="policy_state.csv",
+        name="inforce",
+        source="csv"
+    ),
+    DataSet(
+        columns=[
+            "revisionId", "policyId", "policyInforcePremium",
+            "policyChangeTransactionType", "policyChangeWrittenPremium"
         ],
+        local_path="policy_changes.csv",
+        name="transactions",
+        source="csv"
+    ),
+    DataSet(
+        columns=["policyId", "policyNumber"],
+        local_path="policies.csv",
+        name="policies",
+        source="csv"
+    ),
+    DataSet(
+        columns=["revisionId", "agencyId"],
+        local_path="agencies.csv",
+        name="agencies",
+        source="csv"
+    ),
+    DataSet(
+        columns=["revisionId", "lineOfBusinessName"],
+        local_path="lines.csv",
+        name="lines",
+        source="csv"
+    ),
+    MergeMultipleRule(
+        data_sets=["claims", "inforce", "transactions", "policies", "agencies", "lines"],
         merge_types=["outer", "outer", "outer", "left", "left"]
     ),
     # Claim Count
@@ -101,8 +103,8 @@ DataFlow(steps=[
         group_columns=["agencyName", "lineOfBusinessName"]
         group_values=[
             "claimCount", "lossReserveBalance", "newCount", "newPremium"
-            "cancelCount", "cancelPremium"
+            "cancelCount", "cancelPremium", "policyInforcePremium"
         ]
-        group_functions=["sum", "last", "sum", "sum", "sum", "sum"]
+        group_functions=["sum", "last", "sum", "sum", "sum", "sum", "max"]
     )
 ]).run()
