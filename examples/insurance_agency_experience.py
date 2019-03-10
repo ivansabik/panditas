@@ -42,70 +42,82 @@ DataFlow(steps=[
     ),
     MergeMultipleRule(
         data_sets=["claims", "inforce", "transactions", "policies", "agencies", "lines"],
+        name="merge_facts_dims",
         merge_types=["outer", "outer", "outer", "left", "left"]
     ),
     # Claim Count
     ConstantColumn(
         column_name="claimCount"
-        column_value=0
+        column_value=0,
+        name="add_claim_count_column"
     ),
     ConditionalFill(
         fill_column="claimCount",
-        fill_value= 1
-        where_columns= "claimStatus"
-        where_condition="contains"
+        fill_value= 1,
+        name="calculate_claim_count",
+        where_columns= "claimStatus",
+        where_condition="contains",
         where_condition_value="Open"
     ),
     # Policy New
     ConstantColumn(
-        column_name="newCount"
-        column_value=0
+        column_name="newCount",
+        column_value=0,
+        name="add_new_count_column"
     ),
     ConditionalFill(
         fill_column="newCount",
-        fill_value= 1
-        where_columns= None
-        where_condition="equals"
+        fill_value= 1,
+        name="calculate_new_count",
+        where_columns= None,
+        where_condition="equals",
         where_condition_value="New"
     ),
     ConstantColumn(
-        column_name="newPremium"
-        column_value=0
+        column_name="newPremium",
+        column_value=0,
+        name="add_new_premium"
     ),
     ConditionalFill(
         fill_column="newPremium",
-        fill_value= 1
-        where_condition="equals"
+        fill_value= 1,
+        name="calculate_new_premium",
+        where_condition="equals",
         where_condition_value="New"
     ),
     # Policy cancel
     ConstantColumn(
-        column_name="cancelCount"
-        column_value=0
+        column_name="cancelCount",
+        column_value=0,
+        name="add_cancel_count_column"
     ),
     ConditionalFill(
         fill_column="cancelCount",
-        fill_value= 1
-        where_columns= None
-        where_condition="equals"
+        fill_value= 1,
+        name="calculate_cancel_count",
+        where_columns= None,
+        where_condition="equals",
         where_condition_value="Canceled"
     ),
     ConstantColumn(
-        column_name="cancelPremium"
-        column_value=0
+        column_name="cancelPremium",
+        column_value=0,
+        name="add_cancel_premium"
     ),
     ConditionalFill(
         fill_column="cancelPremium",
-        fill_value= 1
-        where_condition="equals"
+        fill_value= 1,
+        name="calculate_cancel_premium",
+        where_condition="equals",
         where_condition_value="Canceled"
     ),
     PivotTable(
-        group_columns=["agencyName", "lineOfBusinessName"]
+        group_columns=["agencyName", "lineOfBusinessName"],
         group_values=[
             "claimCount", "lossReserveBalance", "newCount", "newPremium"
             "cancelCount", "cancelPremium", "policyInforcePremium"
-        ]
-        group_functions=["sum", "last", "sum", "sum", "sum", "sum", "max"]
+        ],
+        group_functions=["sum", "last", "sum", "sum", "sum", "sum", "max"],
+        name="",
     )
 ]).run()

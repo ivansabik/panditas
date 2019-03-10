@@ -3,6 +3,7 @@ import pandas as pd
 
 class DataFlow:
     custom_params = {}
+    name = None
     steps = []
 
     def run(self):
@@ -13,6 +14,7 @@ class DataFlowStep:
     depends_on = None
     job_id = None
     input_data_set = None
+    name = None
     output_data_set = pd.DataFrame()
 
     def _set_dependencies():
@@ -36,7 +38,6 @@ class DataSet(DataFlowStep):
     db_provider = "mysql"
     db_user = None
     local_path = None
-    name = None
     preview_data_set = pd.DataFrame()
     row_count = 0
     s3_path = None
