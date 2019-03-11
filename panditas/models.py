@@ -139,7 +139,7 @@ class DataFlow:
 
         """
         # TODO: Check from setting and save to s3
-        df.to_parquet("/tmp/{0}.parquet".format(name), compression=None)
+        df.to_parquet("/tmp/{0}.parquet".format(name))
         return name
 
 
