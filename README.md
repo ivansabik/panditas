@@ -1,6 +1,11 @@
 # <img height="30" src="https://raw.githubusercontent.com/ivansabik/panditas/master/doc/icon.png" /><img height="30" src="https://raw.githubusercontent.com/ivansabik/panditas/master/doc/icon.png" /> Panditas <img height="30" src="https://raw.githubusercontent.com/ivansabik/panditas/master/doc/icon.png" /><img height="30" src="https://raw.githubusercontent.com/ivansabik/panditas/master/doc/icon.png" />
 
-<img src="https://travis-ci.com/ivansabik/panditas.svg?branch=master"/>
+<p align="left">
+    <a href="https://travis-ci.com/ivansabik/panditas"><img alt="CI Buld Status" src="https://travis-ci.com/ivansabik/panditas.svg?branch=master"/></a>
+</p>
+<p align="left">
+    <a href="https://github.com/ambv/black"><img alt="Code style: Black" src="https://img.shields.io/badge/code%20style-black-000000.svg"/></a>
+</p>
 
 Build Data Pipelines using Pandas and S3. Initially this will support the following executors:
 - [Dagobah](https://github.com/thieman/dagobah)
@@ -10,7 +15,9 @@ Build Data Pipelines using Pandas and S3. Initially this will support the follow
 
 ### Models
 
-<img src="https://raw.githubusercontent.com/ivansabik/panditas/master/doc/models.png" width="700" align="middle"/>
+<p align="center">
+  <img src="https://raw.githubusercontent.com/ivansabik/panditas/master/doc/models.png" width="700" />
+</p>
 
 - Data Flow
 - Data Flow Steps
@@ -35,7 +42,9 @@ Build Data Pipelines using Pandas and S3. Initially this will support the follow
 
 This is a sample dataflow from the insurance industry, implemented [here](https://github.com/ivansabik/panditas/blob/master/examples/insurance_agency_experience.py):
 
-<img src="https://raw.githubusercontent.com/ivansabik/panditas/master/doc/insurance_agency_experience.png" width="800" align="middle"/>
+<p align="center">
+  <img src="https://raw.githubusercontent.com/ivansabik/panditas/master/doc/insurance_agency_experience.png" width="800" />
+</p>
 
 ### Credits
 
