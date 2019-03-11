@@ -87,7 +87,7 @@ class DataFlow:
 
         """
         # TODO: Check from setting and save to s3
-        df = pd.read_parquet("/tmp/{0}.parquet".format(step_name))
+        df = pd.read_parquet("/tmp/{0}.parquet".format(step_name), engine="pyarrow")
         return df
 
     def run(self):
@@ -139,7 +139,7 @@ class DataFlow:
 
         """
         # TODO: Check from setting and save to s3
-        df.to_parquet("/tmp/{0}.parquet".format(name))
+        df.to_parquet("/tmp/{0}.parquet".format(name), engine="pyarrow")
         return name
 
 
