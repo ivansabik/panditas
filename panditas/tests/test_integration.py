@@ -67,9 +67,9 @@ def test_insurance_agency_experience():
                 fill_column="claimCount",
                 fill_value=1,
                 name="calculate_claim_count",
-                where_columns="claimStatus",
+                where_column="claimStatus",
                 where_condition="contains",
-                where_condition_value="Open",
+                where_condition_values=["Open"],
             ),
             # Policy New
             ConstantColumn(
@@ -79,9 +79,9 @@ def test_insurance_agency_experience():
                 fill_column="newCount",
                 fill_value=1,
                 name="calculate_new_count",
-                where_columns=None,
-                where_condition="equals",
-                where_condition_value="New",
+                where_column=None,
+                where_condition="==",
+                where_condition_values=["New"],
             ),
             ConstantColumn(
                 column_name="newPremium", column_value=0, name="add_new_premium"
@@ -90,8 +90,8 @@ def test_insurance_agency_experience():
                 fill_column="newPremium",
                 fill_value=1,
                 name="calculate_new_premium",
-                where_condition="equals",
-                where_condition_value="New",
+                where_condition="==",
+                where_condition_values=["New"],
             ),
             # Policy cancel
             ConstantColumn(
@@ -103,9 +103,9 @@ def test_insurance_agency_experience():
                 fill_column="cancelCount",
                 fill_value=1,
                 name="calculate_cancel_count",
-                where_columns=None,
-                where_condition="equals",
-                where_condition_value="Canceled",
+                where_column=None,
+                where_condition="==",
+                where_condition_values=["Canceled"],
             ),
             ConstantColumn(
                 column_name="cancelPremium", column_value=0, name="add_cancel_premium"
@@ -114,8 +114,8 @@ def test_insurance_agency_experience():
                 fill_column="cancelPremium",
                 fill_value=1,
                 name="calculate_cancel_premium",
-                where_condition="equals",
-                where_condition_value="Canceled",
+                where_condition="==",
+                where_condition_values=["Canceled"],
             ),
             PivotTable(
                 data_set="calculate_cancel_premium",

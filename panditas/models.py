@@ -105,15 +105,17 @@ class DataFlow:
         """
         for key, step in enumerate(self.steps):
             if not step.name:
-                self.name = "{0}_{1}".format(
-                    type(step).__name__,
-                    step.position
-                )
-                step = self.steps[key]
+                step.name = "{0}_{1}".format(type(step).__name__, step.position)
+                self.steps[key] = step
             logger.info(
                 "Running step {0} name {1}".format(type(step).__name__, step.name)
             )
-            result = step.run()
+            step.run()
+            result = step.output_data_set
+            if not result:
+                raise Exception("Step {0} returned an empty or no Data Set".format(step.name))
+            input_data_sets = step.input_data_sets + [result]
+            self.steps[key + 1].input_data_sets = input_data_sets
         self.output_data_set = result
 
     @staticmethod
@@ -135,13 +137,13 @@ class DataFlow:
         """
         # TODO: Check from setting and save to s3
         df.to_parquet("/tmp/{0}.parquet".format(name), compression=None)
-        return
+        return name
 
 
 class DataFlowStep:
     depends_on = []
     job_id = None
-    input_data_set = None
+    input_data_sets = []
     name = None
     output_data_set = None
     position = None
@@ -257,11 +259,11 @@ class DataSet(DataFlowStep):
         """
         df = pd.DataFrame()
         if self.source == "csv":
-            df = pd.DataFrame({'pi': [3, 1, 4, 1, 5, 9, 2, 6]})
+            df = pd.DataFrame({"pi": [3, 1, 4, 1, 5, 9, 2, 6]})
         elif self.source == "sql":
-            df = pd.DataFrame({'pi': [3, 1, 4, 1, 5, 9, 2, 6]})
+            df = pd.DataFrame({"pi": [3, 1, 4, 1, 5, 9, 2, 6]})
         else:
-            raise Exception(
+            raise StandardError(
                 "{0} is an invalid source, needs to be one of csv or sql".format(
                     self.source
                 )
@@ -408,8 +410,6 @@ class MergeRule(DataFlowStep):
 
 
 class TransformationRule(DataFlowStep):
-    input_data_set = None
-    output_data_set = None
 
     def run(self):
         """Short summary.

@@ -78,7 +78,7 @@ DataFlow(
             fill_value=1,
             name="calculate_new_count",
             where_columns=None,
-            where_condition="equals",
+            where_condition="==",
             where_condition_value="New",
         ),
         ConstantColumn(
@@ -88,7 +88,7 @@ DataFlow(
             fill_column="newPremium",
             fill_value=1,
             name="calculate_new_premium",
-            where_condition="equals",
+            where_condition="==",
             where_condition_value="New",
         ),
         # Policy cancel
@@ -102,7 +102,7 @@ DataFlow(
             fill_value=1,
             name="calculate_cancel_count",
             where_columns=None,
-            where_condition="equals",
+            where_condition="==",
             where_condition_value="Canceled",
         ),
         ConstantColumn(
@@ -112,7 +112,7 @@ DataFlow(
             fill_column="cancelPremium",
             fill_value=1,
             name="calculate_cancel_premium",
-            where_condition="equals",
+            where_condition="==",
             where_condition_value="Canceled",
         ),
         PivotTable(

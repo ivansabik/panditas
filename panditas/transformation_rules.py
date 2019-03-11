@@ -1,8 +1,14 @@
+import datetime
+import re
+
+import numpy as np
+import pandas as pd
+
 from .models import DataFlow, TransformationRule
 
 CHECK_CONDITIONS = [
-    "equals",
-    "does not equal",
+    "==",
+    "!=",
     "contains",
     "does not contain",
     "starts with",
@@ -78,18 +84,18 @@ class CalculatedColumn(TransformationRule):
 class ConditionalFill(TransformationRule):
     fill_column = None
     fill_value = None
-    where_columns = None
+    where_column = None
     where_condition = None
-    where_condition_value = None
+    where_condition_values = None
 
     def __init__(
         self,
         fill_column=None,
         fill_value=None,
         name=None,
-        where_columns=None,
+        where_column=None,
         where_condition=None,
-        where_condition_value=None,
+        where_condition_values=None,
     ):
         """Short summary.
 
@@ -101,12 +107,12 @@ class ConditionalFill(TransformationRule):
             Description of parameter `fill_value`.
         name : type
             Description of parameter `name`.
-        where_columns : type
-            Description of parameter `where_columns`.
+        where_column : type
+            Description of parameter `where_column`.
         where_condition : type
             Description of parameter `where_condition`.
-        where_condition_value : type
-            Description of parameter `where_condition_value`.
+        where_condition_values : type
+            Description of parameter `where_condition_values`.
          : type
             Description of parameter ``.
 
@@ -119,9 +125,144 @@ class ConditionalFill(TransformationRule):
         self.fill_column = fill_column
         self.fill_value = fill_value
         self.name = name
-        self.where_columns = where_columns
+        self.where_column = where_column
         self.where_condition = where_condition
-        self.where_condition_value = where_condition_value
+        self.where_condition_values = where_condition_values
+
+    def _build_operator_expression(self, values, action, column, df):
+        """Short summary.
+
+        Parameters
+        ----------
+        values : type
+            Description of parameter `values`.
+        action : type
+            Description of parameter `action`.
+        column : type
+            Description of parameter `column`.
+        df : type
+            Description of parameter `df`.
+
+        Returns
+        -------
+        type
+            Description of returned object.
+
+        """
+        expressions = []
+        for value in values:
+            if value in df.columns:
+                value = 'df["{0}"]'.format(value)
+            elif (
+                isinstance(value, basestring)
+                and df[column].dtype.type == np.object_
+            ):
+                value = value.replace('"', '\\"')
+                value = '"{0}"'.format(value)
+            if df[column].dtype.type == np.int64 and not isinstance(
+                value, int
+            ):
+                value = int(value)
+            if df[column].dtype.type == np.float64 and not isinstance(
+                value, float
+            ):
+                value = float(value)
+            expression = '(df["{0}"] {1} {2})'.format(column, action, value)
+            expressions.append(expression)
+
+        # A large string of a != b | a !=c doesn't really make sense
+        # Will assume that they intend to have an & in there when they use !=
+        if "!" in action or "not" in action:
+            expression = " & ".join(expressions)
+        else:
+            expression = " | ".join(expressions)
+
+        return expression
+
+    def _build_pandas_expression(self, column, action, values, df):
+        """Create a string that represents a pandas expression.
+
+        Parameters
+        ----------
+        column : type
+            Description of parameter `column`.
+        action : type
+            Description of parameter `action`.
+        values : type
+            Description of parameter `values`.
+        df : type
+            Description of parameter `df`.
+
+        Returns
+        -------
+        type
+            Description of returned object.
+
+        """
+        expression = ""
+
+        # Operator Style
+        operators = ["==", "!="]
+
+        # Method Style
+        string_methods = {
+            "contains": "contains",
+            "not contains": "contains",
+            "startswith": "startswith",
+            "not startswith": "startswith",
+            "endswith": "endswith",
+            "not endswith": "endswith",
+        }
+
+        if action in operators:
+            expression = self._build_operator_expression(values, action, column, df)
+        elif action in string_methods:
+            expression = self._build_string_expression(
+                values, action, column, string_methods
+            )
+        else:
+            raise StandardError(
+                "{0} is an invalid filter, ".format(action)
+                + "needs to be one of {0}".format(",".join(operators + string_methods))
+            )
+        return expression
+
+    def _build_string_expression(self, values, action, column, string_methods):
+        """Short summary.
+
+        Parameters
+        ----------
+        values : type
+            Description of parameter `values`.
+        action : type
+            Description of parameter `action`.
+        column : type
+            Description of parameter `column`.
+        string_methods : type
+            Description of parameter `string_methods`.
+
+        Returns
+        -------
+        type
+            Description of returned object.
+
+        """
+        negation = ""
+        if "not" in action:
+            negation = "~"
+        expressions = []
+        for value in values:
+            if isinstance(value, basestring):
+                value = '"{0}"'.format(value)
+            expression = '({0}df["{1}"].str.{2}({3}))'.format(
+                negation, column, string_methods[action], value
+            )
+            expressions.append(expression)
+        if "!" in action or "not" in action:
+            expression = " & ".join(expressions)
+        else:
+            expression = " | ".join(expressions)
+        return expression
 
     def run(self):
         """Short summary.
@@ -136,7 +277,16 @@ class ConditionalFill(TransformationRule):
             Description of returned object.
 
         """
-        pass
+        # TODO: If using contains or does not contain need to fillna
+        df = DataFlow.get_output_df(self.input_data_sets[-1])
+        pd_expression = self._build_pandas_expression(
+            self.where_column, self.where_condition, self.where_condition_values,
+            df
+        )
+        df[self.fill_column] = np.where(
+            eval(pd_expression), self.fill_value, df[self.fill_column]
+        )
+        self.output_data_set = DataFlow.save_output_df(df, self.name)
 
 
 class ConstantColumn(TransformationRule):
@@ -351,16 +501,14 @@ class PivotTable(TransformationRule):
         for key, column in enumerate(self.group_values):
             group_function = self.group_functions[key]
             if group_function == "unique":
-                group_function = lambda x: ', '.join(set(str(v) for v in x if v))
+                group_function = lambda x: ", ".join(set(str(v) for v in x if v))
             values[column] = group_function
         # Add not specified ones with default (pandas uses mean)
         missing_columns = list(set(df.columns.tolist()) - set(self.group_values))
         for column in missing_columns:
             values[column] = "mean"
         pivot_df = df.pivot_table(
-            index=self.group_columns,
-            values=self.group_values,
-            aggfunc=values
+            index=self.group_columns, values=self.group_values, aggfunc=values
         ).reset_index()
         self.output_data_set = DataFlow.save_output_df(pivot_df, self.name)
 
