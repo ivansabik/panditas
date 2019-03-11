@@ -1,4 +1,4 @@
-# <img height="30" src="https://raw.githubusercontent.com/ivansabik/panditas/master/doc/icon.png" /><img height="30" src="https://raw.githubusercontent.com/ivansabik/panditas/master/doc/icon.png" /> Panditas <img height="30" src="https://raw.githubusercontent.com/ivansabik/panditas/master/doc/icon.png" /><img height="30" src="https://raw.githubusercontent.com/ivansabik/panditas/master/doc/icon.png" />
+# <img height="32" src="https://raw.githubusercontent.com/ivansabik/panditas/master/doc/icon.png" /> Panditas
 
 <p align="left">
     <a href="https://travis-ci.com/ivansabik/panditas"><img alt="CI Buld Status" src="https://travis-ci.com/ivansabik/panditas.svg?branch=master"/></a>
