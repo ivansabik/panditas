@@ -1,8 +1,4 @@
-import datetime
-import re
-
 import numpy as np
-import pandas as pd
 
 from .models import DataFlow, TransformationRule
 
@@ -153,19 +149,12 @@ class ConditionalFill(TransformationRule):
         for value in values:
             if value in df.columns:
                 value = 'df["{0}"]'.format(value)
-            elif (
-                isinstance(value, basestring)
-                and df[column].dtype.type == np.object_
-            ):
+            elif isinstance(value, str) and df[column].dtype.type == np.object_:
                 value = value.replace('"', '\\"')
                 value = '"{0}"'.format(value)
-            if df[column].dtype.type == np.int64 and not isinstance(
-                value, int
-            ):
+            if df[column].dtype.type == np.int64 and not isinstance(value, int):
                 value = int(value)
-            if df[column].dtype.type == np.float64 and not isinstance(
-                value, float
-            ):
+            if df[column].dtype.type == np.float64 and not isinstance(value, float):
                 value = float(value)
             expression = '(df["{0}"] {1} {2})'.format(column, action, value)
             expressions.append(expression)
@@ -252,7 +241,7 @@ class ConditionalFill(TransformationRule):
             negation = "~"
         expressions = []
         for value in values:
-            if isinstance(value, basestring):
+            if isinstance(value, str):
                 value = '"{0}"'.format(value)
             expression = '({0}df["{1}"].str.{2}({3}))'.format(
                 negation, column, string_methods[action], value
@@ -280,8 +269,7 @@ class ConditionalFill(TransformationRule):
         # TODO: If using contains or does not contain need to fillna
         df = DataFlow.get_output_df(self.input_data_sets[-1])
         pd_expression = self._build_pandas_expression(
-            self.where_column, self.where_condition, self.where_condition_values,
-            df
+            self.where_column, self.where_condition, self.where_condition_values, df
         )
         df[self.fill_column] = np.where(
             eval(pd_expression), self.fill_value, df[self.fill_column]
@@ -328,7 +316,10 @@ class ConstantColumn(TransformationRule):
             Description of returned object.
 
         """
-        pass
+        df = DataFlow.get_output_df(self.input_data_sets[-1])
+        # TODO: Add support for reference to other column
+        df[self.column_name] = self.column_value
+        self.output_data_set = DataFlow.save_output_df(df, self.name)
 
 
 class FilterBy(TransformationRule):
@@ -437,7 +428,6 @@ class MapValues(TransformationRule):
 
 
 class PivotTable(TransformationRule):
-    data_set = None
     group_columns = None
     group_functions = None
     group_values = None
@@ -445,7 +435,6 @@ class PivotTable(TransformationRule):
 
     def __init__(
         self,
-        data_set=None,
         group_columns=None,
         group_functions=None,
         group_values=None,
@@ -456,8 +445,6 @@ class PivotTable(TransformationRule):
 
         Parameters
         ----------
-        data_set : type
-            Description of parameter `data_set`.
         group_columns : type
             Description of parameter `group_columns`.
         group_functions : type
@@ -475,7 +462,6 @@ class PivotTable(TransformationRule):
             Description of returned object.
 
         """
-        self.data_set = data_set
         self.group_columns = group_columns
         self.group_functions = group_functions
         self.group_values = group_values
@@ -495,7 +481,7 @@ class PivotTable(TransformationRule):
             Description of returned object.
 
         """
-        df = DataFlow.get_output_df(self.data_set)
+        df = DataFlow.get_output_df(self.input_data_sets[-1])
         values = {}
         # First add the cols provided for the pivot
         for key, column in enumerate(self.group_values):

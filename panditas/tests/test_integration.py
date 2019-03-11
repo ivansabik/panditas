@@ -118,7 +118,6 @@ def test_insurance_agency_experience():
                 where_condition_values=["Canceled"],
             ),
             PivotTable(
-                data_set="calculate_cancel_premium",
                 group_columns=["agencyName", "lineOfBusinessName"],
                 group_values=[
                     "claimCount",

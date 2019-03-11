@@ -113,7 +113,9 @@ class DataFlow:
             step.run()
             result = step.output_data_set
             if not result:
-                raise Exception("Step {0} returned an empty or no Data Set".format(step.name))
+                raise Exception(
+                    "Step {0} returned an empty or no Data Set".format(step.name)
+                )
             input_data_sets = step.input_data_sets + [result]
             self.steps[key + 1].input_data_sets = input_data_sets
         self.output_data_set = result
@@ -410,7 +412,6 @@ class MergeRule(DataFlowStep):
 
 
 class TransformationRule(DataFlowStep):
-
     def run(self):
         """Short summary.
 
