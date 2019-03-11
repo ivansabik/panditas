@@ -14,15 +14,15 @@ class DataFlow:
     output_data_set = None
     steps = []
 
-    def __init__(self, name=None, steps=[]):
-        """Short summary.
+    def __init__(self, name="", steps=[]):
+        """Creates a new DataFlow instance.
 
         Parameters
         ----------
-        name : type
-            Description of parameter `name`.
-        steps : type
-            Description of parameter `steps`.
+        name : str
+            Name of the data flow (for example: Daily marketing report).
+        steps : list
+            List with Data Flow Step containing Data Sets, Merge Rules, Transformation Rules, etc.
 
         Returns
         -------

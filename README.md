@@ -20,7 +20,7 @@ Build Data Pipelines using Pandas and S3. Initially this will support the follow
 - Data Flow
 - Data Flow Steps
   - Data Set
-  - Data Transformation, available transformations include:
+  - Data Transformation
     - Calculated Column
     - Columns Subset
     - Conditional Fill
