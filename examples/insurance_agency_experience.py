@@ -6,13 +6,13 @@ DataFlow(
     steps=[
         DataSet(
             columns=["revisionId", "lossReserveBalance", "claimStatus"],
-            local_path="claims.csv",
+            df_path="{0}/claims.csv".format(fixtures_path),
             name="claims",
             source="csv",
         ),
         DataSet(
             columns=["revisionId", "policyId", "policyInforcePremium"],
-            local_path="policy_state.csv",
+            df_path="{0}/policy_state.csv".format(fixtures_path),
             name="inforce",
             source="csv",
         ),
@@ -23,25 +23,25 @@ DataFlow(
                 "policyChangeTransactionType",
                 "policyChangeWrittenPremium",
             ],
-            local_path="policy_changes.csv",
+            df_path="{0}/policy_changes.csv".format(fixtures_path),
             name="transactions",
             source="csv",
         ),
         DataSet(
             columns=["policyId", "policyNumber"],
-            local_path="policies.csv",
+            df_path="{0}/policies.csv".format(fixtures_path),
             name="policies",
             source="csv",
         ),
         DataSet(
-            columns=["revisionId", "agencyId"],
-            local_path="agencies.csv",
+            columns=["revisionId", "agencyName"],
+            df_path="{0}/agencies.csv".format(fixtures_path),
             name="agencies",
             source="csv",
         ),
         DataSet(
             columns=["revisionId", "lineOfBusinessName"],
-            local_path="lines.csv",
+            df_path="{0}/lines.csv".format(fixtures_path),
             name="lines",
             source="csv",
         ),
@@ -65,9 +65,9 @@ DataFlow(
             fill_column="claimCount",
             fill_value=1,
             name="calculate_claim_count",
-            where_columns="claimStatus",
+            where_column="claimStatus",
             where_condition="contains",
-            where_condition_value="Open",
+            where_condition_values=["Open"],
         ),
         # Policy New
         ConstantColumn(
@@ -77,9 +77,9 @@ DataFlow(
             fill_column="newCount",
             fill_value=1,
             name="calculate_new_count",
-            where_columns=None,
+            where_column="policyChangeTransactionType",
             where_condition="==",
-            where_condition_value="New",
+            where_condition_values=["New"],
         ),
         ConstantColumn(
             column_name="newPremium", column_value=0, name="add_new_premium"
@@ -88,8 +88,9 @@ DataFlow(
             fill_column="newPremium",
             fill_value=1,
             name="calculate_new_premium",
+            where_column="policyChangeTransactionType",
             where_condition="==",
-            where_condition_value="New",
+            where_condition_values=["New"],
         ),
         # Policy cancel
         ConstantColumn(
@@ -101,9 +102,9 @@ DataFlow(
             fill_column="cancelCount",
             fill_value=1,
             name="calculate_cancel_count",
-            where_columns=None,
+            where_column="policyChangeTransactionType",
             where_condition="==",
-            where_condition_value="Canceled",
+            where_condition_values=["Canceled"],
         ),
         ConstantColumn(
             column_name="cancelPremium", column_value=0, name="add_cancel_premium"
@@ -112,8 +113,9 @@ DataFlow(
             fill_column="cancelPremium",
             fill_value=1,
             name="calculate_cancel_premium",
+            where_column="policyChangeTransactionType",
             where_condition="==",
-            where_condition_value="Canceled",
+            where_condition_values=["Canceled"],
         ),
         PivotTable(
             group_columns=["agencyName", "lineOfBusinessName"],
@@ -121,12 +123,13 @@ DataFlow(
                 "claimCount",
                 "lossReserveBalance",
                 "newCount",
-                "newPremium" "cancelCount",
+                "newPremium",
+                "cancelCount",
                 "cancelPremium",
                 "policyInforcePremium",
             ],
             group_functions=["sum", "last", "sum", "sum", "sum", "sum", "max"],
             name="group_by_agency_line",
         ),
-    ]
+    ],
 )
