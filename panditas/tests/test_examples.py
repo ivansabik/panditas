@@ -130,11 +130,16 @@ def test_insurance_agency_experience():
                 group_functions=["sum", "last", "sum", "sum", "sum", "sum", "max"],
                 name="group_by_agency_line",
             ),
-        ]
+        ],
     )
     data_flow.run()
     assert data_flow.output_data_set.columns.tolist() == [
-        "agencyName", "lineOfBusinessName", "claimCount", "lossReserveBalance",
-        "newCount", "newPremium" "cancelCount", "cancelPremium",
-        "policyInforcePremium"
+        "agencyName",
+        "lineOfBusinessName",
+        "claimCount",
+        "lossReserveBalance",
+        "newCount",
+        "newPremium" "cancelCount",
+        "cancelPremium",
+        "policyInforcePremium",
     ]

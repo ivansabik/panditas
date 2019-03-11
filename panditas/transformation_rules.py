@@ -44,8 +44,13 @@ class ConditionalFill(TransformationRule):
     where_condition_value = None
 
     def __init__(
-        self, fill_column=None, fill_value=None, name=None, where_columns=None,
-        where_condition=None, where_condition_value=None
+        self,
+        fill_column=None,
+        fill_value=None,
+        name=None,
+        where_columns=None,
+        where_condition=None,
+        where_condition_value=None,
     ):
         self.fill_column = fill_column
         self.fill_value = fill_value
@@ -96,8 +101,12 @@ class PivotTable(TransformationRule):
     preserve_order = True
 
     def __init__(
-        self, group_columns=None, group_functions=None, group_values=None,
-        name=None, preserve_order=True
+        self,
+        group_columns=None,
+        group_functions=None,
+        group_values=None,
+        name=None,
+        preserve_order=True,
     ):
         self.group_columns = group_columns
         self.group_functions = group_functions

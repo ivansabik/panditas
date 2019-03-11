@@ -1,4 +1,9 @@
+import logging
+
 import pandas as pd
+
+
+logger = logging.getLogger(__name__)
 
 
 class DataFlow:
@@ -11,8 +16,17 @@ class DataFlow:
         self.name = name
         self.steps = steps
 
-    def run(self):
+    def _set_dependencies():
+        # DataSets do not have dependencies, they can be sourced in parallel
+        # Single Merge have dependencies on the left and right data sets
+        # Multiple Merge have dependencies on all the data sets
         pass
+
+    def run(self):
+        self._set_dependencies()
+        for step in self.steps:
+            logger.info("Running step {0} with name {1} ".format(type(step), step.name))
+            step.run()
 
 
 class DataFlowStep:
@@ -21,12 +35,6 @@ class DataFlowStep:
     input_data_set = None
     name = None
     output_data_set = pd.DataFrame()
-
-    def _set_dependencies():
-        # DataSets do not have dependencies, they can be sourced in parallel
-        # Single Merge have dependencies on the left and right data sets
-        # Multiple Merge have dependencies on all the data sets
-        pass
 
     def run(self):
         # Save output to CSV or SQL

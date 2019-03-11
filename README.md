@@ -2,8 +2,6 @@
 
 <p align="left">
     <a href="https://travis-ci.com/ivansabik/panditas"><img alt="CI Buld Status" src="https://travis-ci.com/ivansabik/panditas.svg?branch=master"/></a>
-</p>
-<p align="left">
     <a href="https://github.com/ambv/black"><img alt="Code style: Black" src="https://img.shields.io/badge/code%20style-black-000000.svg"/></a>
 </p>
 
