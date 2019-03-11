@@ -118,6 +118,7 @@ def test_insurance_agency_experience():
                 where_condition_value="Canceled",
             ),
             PivotTable(
+                data_set="calculate_cancel_premium",
                 group_columns=["agencyName", "lineOfBusinessName"],
                 group_values=[
                     "claimCount",
@@ -133,7 +134,9 @@ def test_insurance_agency_experience():
         ],
     )
     data_flow.run()
-    assert data_flow.output_data_set.columns.tolist() == [
+    assert data_flow.output_data_set == "group_by_agency_line"
+    df = DataFlow.get_output_df(data_flow.output_data_set)
+    assert df.columns.tolist() == [
         "agencyName",
         "lineOfBusinessName",
         "claimCount",

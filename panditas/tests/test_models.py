@@ -21,12 +21,13 @@ def test_dependencies():
     assert data_flow.steps[0].depends_on == []
     assert data_flow.steps[1].depends_on == ["claims"]
 
+
 def test_data_set_dependencies():
     data_flow = DataFlow(
         name="Test Dependent Data Sets",
         steps=[
             DataSet(local_path="claims.csv", name="claims", source="csv"),
-            DataSet(local_path="policies.csv", name="policies", source="csv")
+            DataSet(local_path="policies.csv", name="policies", source="csv"),
         ],
     )
     assert data_flow.steps[0].name == "claims"
@@ -36,12 +37,18 @@ def test_data_set_dependencies():
     assert data_flow.steps[0].depends_on == []
     assert data_flow.steps[1].depends_on == []
 
+
 def test_data_set_dependencies_manual():
     data_flow = DataFlow(
         name="Test Data Sets",
         steps=[
             DataSet(local_path="claims.csv", name="claims", source="csv"),
-            DataSet(local_path="policies.csv", name="policies", source="csv", depends_on=["claims"])
+            DataSet(
+                local_path="policies.csv",
+                name="policies",
+                source="csv",
+                depends_on=["claims"],
+            ),
         ],
     )
     assert data_flow.steps[0].name == "claims"
@@ -62,7 +69,7 @@ def test_dependencies_merge():
                 left_data_set="df_one",
                 right_data_set="df_two",
                 merge_type="inner",
-                name="merge_data_sets"
+                name="merge_data_sets",
             ),
         ],
     )
@@ -81,27 +88,11 @@ def test_dependencies_merge_multiple():
     data_flow = DataFlow(
         name="Test Merge Multiple",
         steps=[
-            DataSet(
-                local_path="claims.csv",
-                name="claims",
-                source="csv",
-            ),
-            DataSet(
-                local_path="policies.csv",
-                name="policies",
-                source="csv",
-            ),
-            DataSet(
-                local_path="agencies.csv",
-                name="agencies",
-                source="csv",
-            ),
+            DataSet(local_path="claims.csv", name="claims", source="csv"),
+            DataSet(local_path="policies.csv", name="policies", source="csv"),
+            DataSet(local_path="agencies.csv", name="agencies", source="csv"),
             MergeMultipleRule(
-                data_sets=[
-                    "claims",
-                    "policies",
-                    "agencies",
-                ],
+                data_sets=["claims", "policies", "agencies"],
                 name="merge_facts_dims",
                 merge_types=["inner", "inner", "inner"],
             ),
@@ -110,8 +101,4 @@ def test_dependencies_merge_multiple():
     assert data_flow.steps[0].depends_on == []
     assert data_flow.steps[1].depends_on == []
     assert data_flow.steps[2].depends_on == []
-    assert data_flow.steps[3].depends_on == [
-        "claims",
-        "policies",
-        "agencies",
-    ]
+    assert data_flow.steps[3].depends_on == ["claims", "policies", "agencies"]

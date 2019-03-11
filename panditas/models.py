@@ -9,11 +9,27 @@ logger = logging.getLogger(__name__)
 
 class DataFlow:
     custom_params = {}
+    datasets = []
     name = None
-    output_data_set = pd.DataFrame()
+    output_data_set = None
     steps = []
 
     def __init__(self, name=None, steps=[]):
+        """Short summary.
+
+        Parameters
+        ----------
+        name : type
+            Description of parameter `name`.
+        steps : type
+            Description of parameter `steps`.
+
+        Returns
+        -------
+        type
+            Description of returned object.
+
+        """
         self.name = name
         self.steps = steps
         if not self.name:
@@ -25,26 +41,101 @@ class DataFlow:
             self._set_dependencies(step)
 
     def _set_dependencies(self, step):
+        """Short summary.
+
+        Parameters
+        ----------
+        step : type
+            Description of parameter `step`.
+
+        Returns
+        -------
+        type
+            Description of returned object.
+
+        """
         step_type = type(step).__name__
         # Multiple Merge have dependencies on all the data sets
         if step_type == "MergeMultipleRule":
             self.steps[step.position].depends_on = step.data_sets
         # Single Merge have dependencies on the left and right data sets
         elif step_type == "MergeRule":
-            self.steps[step.position].depends_on = [step.left_data_set, step.right_data_set]
-        # DataSets do not have dependencies (unless manually specified)
+            self.steps[step.position].depends_on = [
+                step.left_data_set,
+                step.right_data_set,
+            ]
+        # Data Sets do not have dependencies (unless manually specified)
         elif step_type != "DataSet":
             previous_step = self.steps[step.position - 1]
             self.steps[step.position].depends_on = [previous_step.name]
         elif step_type == "DataSet" and not self.steps[step.position].depends_on:
             self.steps[step.position].depends_on = []
 
+    @staticmethod
+    def get_output_df(step_name):
+        """Short summary.
+
+        Parameters
+        ----------
+        step_name : type
+            Description of parameter `step_name`.
+
+        Returns
+        -------
+        type
+            Description of returned object.
+
+        """
+        # TODO: Check from setting and save to s3
+        df = pd.read_parquet("/tmp/{0}.parquet".format(step_name))
+        return df
+
     def run(self):
-        for step in self.steps:
+        """Short summary.
+
+        Parameters
+        ----------
+
+
+        Returns
+        -------
+        type
+            Description of returned object.
+
+        """
+        for key, step in enumerate(self.steps):
+            if not step.name:
+                self.name = "{0}_{1}".format(
+                    type(step).__name__,
+                    step.position
+                )
+                step = self.steps[key]
             logger.info(
-                "Running step {0} with name {1}".format(type(step).__name__, step.name)
+                "Running step {0} name {1}".format(type(step).__name__, step.name)
             )
-            step.run()
+            result = step.run()
+        self.output_data_set = result
+
+    @staticmethod
+    def save_output_df(df, name):
+        """Short summary.
+
+        Parameters
+        ----------
+        df : type
+            Description of parameter `df`.
+        name : type
+            Description of parameter `name`.
+
+        Returns
+        -------
+        type
+            Description of returned object.
+
+        """
+        # TODO: Check from setting and save to s3
+        df.to_parquet("/tmp/{0}.parquet".format(name), compression=None)
+        return
 
 
 class DataFlowStep:
@@ -52,10 +143,22 @@ class DataFlowStep:
     job_id = None
     input_data_set = None
     name = None
-    output_data_set = pd.DataFrame()
+    output_data_set = None
     position = None
 
     def run(self):
+        """Short summary.
+
+        Parameters
+        ----------
+
+
+        Returns
+        -------
+        type
+            Description of returned object.
+
+        """
         # Save output to CSV or SQL
         pass
 
@@ -79,21 +182,106 @@ class DataSet(DataFlowStep):
     sql_query = None
     table_name = None
 
-    def __init__(self, columns=None, depends_on=[], local_path=None, name=None, source=None):
+    def __init__(
+        self, columns=None, depends_on=[], local_path=None, name=None, source=None
+    ):
+        """Short summary.
+
+        Parameters
+        ----------
+        columns : type
+            Description of parameter `columns`.
+        depends_on : type
+            Description of parameter `depends_on`.
+        local_path : type
+            Description of parameter `local_path`.
+        name : type
+            Description of parameter `name`.
+        source : type
+            Description of parameter `source`.
+
+        Returns
+        -------
+        type
+            Description of returned object.
+
+        """
         self.columns = columns
         self.depends_on = depends_on
         self.local_path = local_path
         self.name = name
         self.source = source
 
-    def get(self):
-        self.output_data_set = pd.DataFrame()
-
     def _get_columns(self):
+        """Short summary.
+
+        Parameters
+        ----------
+
+
+        Returns
+        -------
+        type
+            Description of returned object.
+
+        """
         self.columns = []
 
     def _get_data_types(self):
+        """Short summary.
+
+        Parameters
+        ----------
+
+
+        Returns
+        -------
+        type
+            Description of returned object.
+
+        """
         self.data_types = {}
+
+    def get(self):
+        """Short summary.
+
+        Parameters
+        ----------
+
+
+        Returns
+        -------
+        type
+            Description of returned object.
+
+        """
+        df = pd.DataFrame()
+        if self.source == "csv":
+            df = pd.DataFrame({'pi': [3, 1, 4, 1, 5, 9, 2, 6]})
+        elif self.source == "sql":
+            df = pd.DataFrame({'pi': [3, 1, 4, 1, 5, 9, 2, 6]})
+        else:
+            raise Exception(
+                "{0} is an invalid source, needs to be one of csv or sql".format(
+                    self.source
+                )
+            )
+        return DataFlow.save_output_df(df, self.name)
+
+    def run(self):
+        """Short summary.
+
+        Parameters
+        ----------
+
+
+        Returns
+        -------
+        type
+            Description of returned object.
+
+        """
+        self.output_data_set = self.get()
 
 
 class MergeMultipleRule(DataFlowStep):
@@ -101,14 +289,45 @@ class MergeMultipleRule(DataFlowStep):
     merge_types = []
 
     def __init__(self, data_sets=[], merge_types=[], name=None):
+        """Short summary.
+
+        Parameters
+        ----------
+        data_sets : type
+            Description of parameter `data_sets`.
+        merge_types : type
+            Description of parameter `merge_types`.
+        name : type
+            Description of parameter `name`.
+
+        Returns
+        -------
+        type
+            Description of returned object.
+
+        """
         self.data_sets = data_sets
         self.merge_types = merge_types
         self.name = name
 
     def run(self):
-        base_df = self.data_sets.pop(0)
+        """Short summary.
+
+        Parameters
+        ----------
+
+
+        Returns
+        -------
+        type
+            Description of returned object.
+
+        """
+        df = DataFlow.get_output_df(self.data_sets.pop(0))
         for key, data_set in enumerate(self.data_sets):
-            base_df = base_df.merge(data_set, how=self.merge_types[key])
+            right_df = DataFlow.get_output_df(data_set)
+            df = df.merge(right_df, how=self.merge_types[key])
+        self.output_data_set = DataFlow.save_output_df(df, self.name)
 
 
 class MergeRule(DataFlowStep):
@@ -129,6 +348,31 @@ class MergeRule(DataFlowStep):
         merge_columns_right=None,
         name=None,
     ):
+        """Short summary.
+
+        Parameters
+        ----------
+        left_data_set : type
+            Description of parameter `left_data_set`.
+        right_data_set : type
+            Description of parameter `right_data_set`.
+        merge_type : type
+            Description of parameter `merge_type`.
+        merge_columns : type
+            Description of parameter `merge_columns`.
+        merge_columns_left : type
+            Description of parameter `merge_columns_left`.
+        merge_columns_right : type
+            Description of parameter `merge_columns_right`.
+        name : type
+            Description of parameter `name`.
+
+        Returns
+        -------
+        type
+            Description of returned object.
+
+        """
         self.left_data_set = left_data_set
         self.right_data_set = right_data_set
         self.merge_type = merge_type
@@ -138,14 +382,29 @@ class MergeRule(DataFlowStep):
         self.name = name
 
     def run(self):
-        self.output_data_set = pd.merge(
-            self.left_data_set,
-            self.right_data_set,
+        """Short summary.
+
+        Parameters
+        ----------
+
+
+        Returns
+        -------
+        type
+            Description of returned object.
+
+        """
+        left_df = DataFlow.get_output_df(self.left_data_set)
+        right_df = DataFlow.get_output_df(self.right_data_set)
+        df = pd.merge(
+            left_df,
+            right_df,
             how=self.merge_type,
             on=self.merge_type,
             left_on=self.merge_columns_left,
             right_on=self.merge_columns_right,
         )
+        self.output_data_set = DataFlow.save_output_df(df, self.name)
 
 
 class TransformationRule(DataFlowStep):
@@ -153,4 +412,16 @@ class TransformationRule(DataFlowStep):
     output_data_set = None
 
     def run(self):
+        """Short summary.
+
+        Parameters
+        ----------
+
+
+        Returns
+        -------
+        type
+            Description of returned object.
+
+        """
         raise NotImplementedError("Needs to be implemented by inheriting class")
