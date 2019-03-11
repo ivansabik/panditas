@@ -1,2 +1,3 @@
 policyId,revisionId,policyChangeWrittenPremium,policyChangeEarnedPremium,policyChangeTransactionalCustomFees,policyChangeTransactionDate,policyChangeTransactionType,policyChangeEndingPremium
 Policy1,Revision1,1000,,,,New,
+Policy2,Revision2,-200,,,,Canceled,
