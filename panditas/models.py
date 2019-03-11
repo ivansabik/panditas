@@ -35,7 +35,7 @@ class DataFlow:
         # DataSets do not have dependencies (unless manually specified)
         elif step_type != "DataSet":
             previous_step = self.steps[step.position - 1]
-            self.steps[step.position].depends_on.append(previous_step.name)
+            self.steps[step.position].depends_on = [previous_step.name]
         elif step_type == "DataSet" and not self.steps[step.position].depends_on:
             self.steps[step.position].depends_on = []
 
@@ -105,7 +105,7 @@ class MergeMultipleRule(DataFlowStep):
         self.merge_types = merge_types
         self.name = name
 
-    def merge(self):
+    def run(self):
         base_df = self.data_sets.pop(0)
         for key, data_set in enumerate(self.data_sets):
             base_df = base_df.merge(data_set, how=self.merge_types[key])
@@ -137,7 +137,7 @@ class MergeRule(DataFlowStep):
         self.merge_columns_right = merge_columns_right
         self.name = name
 
-    def merge(self):
+    def run(self):
         self.output_data_set = pd.merge(
             self.left_data_set,
             self.right_data_set,
