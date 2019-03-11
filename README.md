@@ -41,7 +41,7 @@ Build Data Pipelines using Pandas and S3. Initially this will support the follow
 This is a sample dataflow from the insurance industry, implemented [here](https://github.com/ivansabik/panditas/blob/master/examples/insurance_agency_experience.py):
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/ivansabik/panditas/master/doc/insurance_agency_experience.png" width="800" />
+  <img src="https://raw.githubusercontent.com/ivansabik/panditas/master/doc/insurance_agency_experience.png" width="850" />
 </p>
 
 ### Credits

@@ -35,6 +35,9 @@ class CalculatedColumn(TransformationRule):
     def _validate_expression(self):
         pass
 
+    def run():
+        pass
+
 
 class ConditionalFill(TransformationRule):
     fill_column = None
@@ -59,6 +62,10 @@ class ConditionalFill(TransformationRule):
         self.where_condition = where_condition
         self.where_condition_value = where_condition_value
 
+    def run():
+        pass
+
+
 
 class ConstantColumn(TransformationRule):
     column_name = None
@@ -69,12 +76,18 @@ class ConstantColumn(TransformationRule):
         self.column_value = column_value
         self.name = name
 
+    def run():
+        pass
+
 
 class FilterBy(TransformationRule):
     column_name = None
     filter_conditions = None
 
     def __init__(self):
+        pass
+
+    def run():
         pass
 
 
@@ -84,6 +97,9 @@ class FormatColumns(TransformationRule):
     def __init__(self):
         pass
 
+    def run():
+        pass
+
 
 class MapValues(TransformationRule):
     default_map_value = None
@@ -91,6 +107,9 @@ class MapValues(TransformationRule):
     map_values = None
 
     def __init__(self):
+        pass
+
+    def run():
         pass
 
 
@@ -114,11 +133,17 @@ class PivotTable(TransformationRule):
         self.name = name
         self.preserve_order = preserve_order
 
+    def run():
+        pass
+
 
 class RemoveColumns(TransformationRule):
     column_names = None
 
     def __init__(self):
+        pass
+
+    def run():
         pass
 
 
@@ -128,11 +153,17 @@ class RemoveDuplicateRows(TransformationRule):
     def __init__(self):
         pass
 
+    def run():
+        pass
+
 
 class RenameColumns(TransformationRule):
     columns = None
 
     def __init__(self):
+        pass
+
+    def run():
         pass
 
 
@@ -146,11 +177,17 @@ class ReplaceText(TransformationRule):
     def __init__(self):
         pass
 
+    def run():
+        pass
+
 
 class SelectColumns(TransformationRule):
     columns = None
 
     def __init__(self):
+        pass
+
+    def run():
         pass
 
 
@@ -159,4 +196,7 @@ class SortValuesBy(TransformationRule):
     sort_ascending = None
 
     def __init__(self):
+        pass
+
+    def run():
         pass
