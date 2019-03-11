@@ -125,7 +125,9 @@ class ConditionalFill(TransformationRule):
         self.where_condition = where_condition
         self.where_condition_values = where_condition_values
 
-    def _build_operator_expression(self, values, action, column, df):
+    def _build_operator_expression(
+        self, values=None, action=None, column=None, df=None
+    ):
         """Short summary.
 
         Parameters
@@ -168,7 +170,7 @@ class ConditionalFill(TransformationRule):
 
         return expression
 
-    def _build_pandas_expression(self, column, action, values, df):
+    def _build_pandas_expression(self, column=None, action=None, values=None, df=None):
         """Create a string that represents a pandas expression.
 
         Parameters
@@ -204,15 +206,17 @@ class ConditionalFill(TransformationRule):
         }
 
         if action in operators:
-            expression = self._build_operator_expression(values, action, column, df)
+            expression = self._build_operator_expression(
+                values=values, action=action, column=column, df=df
+            )
         elif action in string_methods:
             expression = self._build_string_expression(
                 values, action, column, string_methods
             )
         else:
-            raise StandardError(
+            raise Exception(
                 "{0} is an invalid filter, ".format(action)
-                + "needs to be one of {0}".format(",".join(operators + string_methods))
+                + "needs to be one of {0}".format(", ".join(operators + string_methods))
             )
         return expression
 
@@ -268,8 +272,18 @@ class ConditionalFill(TransformationRule):
         """
         # TODO: If using contains or does not contain need to fillna
         df = DataFlow.get_output_df(self.input_data_sets[-1])
+        available_columns = df.columns.tolist()
+        if self.where_column not in available_columns:
+            raise Exception(
+                "{0} is an invalid column name, needs to be one of {1}".format(
+                    self.where_column, ", ".join(available_columns)
+                )
+            )
         pd_expression = self._build_pandas_expression(
-            self.where_column, self.where_condition, self.where_condition_values, df
+            column=self.where_column,
+            action=self.where_condition,
+            values=self.where_condition_values,
+            df=df,
         )
         df[self.fill_column] = np.where(
             eval(pd_expression), self.fill_value, df[self.fill_column]
@@ -482,19 +496,26 @@ class PivotTable(TransformationRule):
 
         """
         df = DataFlow.get_output_df(self.input_data_sets[-1])
-        values = {}
+        available_columns = df.columns.tolist()
+        requested_columns = self.group_columns + self.group_values
+        for requested_column in requested_columns:
+            if requested_column not in available_columns:
+                raise Exception(
+                    "{0} is an invalid column, needs to be one of {1}".format(
+                        requested_column, ", ".join(available_columns)
+                    )
+                )
+        pivot_functions = {}
         # First add the cols provided for the pivot
         for key, column in enumerate(self.group_values):
             group_function = self.group_functions[key]
             if group_function == "unique":
                 group_function = lambda x: ", ".join(set(str(v) for v in x if v))
-            values[column] = group_function
+            pivot_functions[column] = group_function
         # Add not specified ones with default (pandas uses mean)
-        missing_columns = list(set(df.columns.tolist()) - set(self.group_values))
-        for column in missing_columns:
-            values[column] = "mean"
+        df = df[requested_columns]
         pivot_df = df.pivot_table(
-            index=self.group_columns, values=self.group_values, aggfunc=values
+            index=self.group_columns, values=self.group_values, aggfunc=pivot_functions
         ).reset_index()
         self.output_data_set = DataFlow.save_output_df(pivot_df, self.name)
 

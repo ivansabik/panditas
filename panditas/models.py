@@ -117,7 +117,8 @@ class DataFlow:
                     "Step {0} returned an empty or no Data Set".format(step.name)
                 )
             input_data_sets = step.input_data_sets + [result]
-            self.steps[key + 1].input_data_sets = input_data_sets
+            if key + 1 < len(self.steps):
+                self.steps[key + 1].input_data_sets = input_data_sets
         self.output_data_set = result
 
     @staticmethod
@@ -176,10 +177,9 @@ class DataSet(DataFlowStep):
     db_port = 3306
     db_provider = "mysql"
     db_user = None
-    local_path = None
+    df_path = None
     preview_data_set = pd.DataFrame()
     row_count = 0
-    s3_path = None
     sheet_index = 0
     sheet_name = None
     source = "csv"
@@ -187,7 +187,7 @@ class DataSet(DataFlowStep):
     table_name = None
 
     def __init__(
-        self, columns=None, depends_on=[], local_path=None, name=None, source=None
+        self, columns=None, depends_on=[], df_path=None, name=None, source=None
     ):
         """Short summary.
 
@@ -197,8 +197,8 @@ class DataSet(DataFlowStep):
             Description of parameter `columns`.
         depends_on : type
             Description of parameter `depends_on`.
-        local_path : type
-            Description of parameter `local_path`.
+        df_path : type
+            Description of parameter `df_path`.
         name : type
             Description of parameter `name`.
         source : type
@@ -212,7 +212,7 @@ class DataSet(DataFlowStep):
         """
         self.columns = columns
         self.depends_on = depends_on
-        self.local_path = local_path
+        self.df_path = df_path
         self.name = name
         self.source = source
 
@@ -261,9 +261,11 @@ class DataSet(DataFlowStep):
         """
         df = pd.DataFrame()
         if self.source == "csv":
-            df = pd.DataFrame({"pi": [3, 1, 4, 1, 5, 9, 2, 6]})
+            df = pd.read_csv(self.df_path)
+            if self.columns:
+                df = df[self.columns]
         elif self.source == "sql":
-            df = pd.DataFrame({"pi": [3, 1, 4, 1, 5, 9, 2, 6]})
+            raise Exception("TODO: Finish")
         else:
             raise StandardError(
                 "{0} is an invalid source, needs to be one of csv or sql".format(
