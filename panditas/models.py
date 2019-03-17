@@ -320,17 +320,36 @@ class MergeMultipleRule(DataFlowStep):
         self.merge_types = merge_types
         self.merge_keys = merge_keys
         self.name = name
-        if not merge_keys:
+        self._validate_merge_keys()
+
+    def __repr__(self):
+        return "Merge Multiple Rule on Data Flow: {} for data sets: {}".format(
+            self.name, self.data_sets
+        )
+
+    def _validate_merge_keys(self):
+        """If merge keys are not provided, set them to None.
+
+        Parameters
+        ----------
+
+
+        Returns
+        -------
+        None
+
+        """
+        if not self.merge_keys:
             merge_keys = list()
             for idx, merge in enumerate(self.merge_types):
                 merge_keys.insert(idx, tuple())
                 merge_keys[idx][0] = list()
                 merge_keys[idx][1] = list()
         else:
-            assert len(merge_keys) == len(
-                merge_types
+            assert len(self.merge_keys) == len(
+                self.merge_types
             ), "If merge keys are provided their lenght must match merge types lenght"
-            for keys in merge_keys:
+            for keys in self.merge_keys:
                 assert isinstance(keys, tuple), "merge_keys must be a list of tuples"
                 assert isinstance(
                     keys[0], list
@@ -344,11 +363,6 @@ class MergeMultipleRule(DataFlowStep):
                 assert len(keys[0]) == len(
                     keys[1]
                 ), "The number of columns or index level on which the join is made must be equal"
-
-    def __repr__(self):
-        return "Merge Multiple Rule on Data Flow: {} for data sets: {}".format(
-            self.name, self.data_sets
-        )
 
     def run(self):
         """Short summary.

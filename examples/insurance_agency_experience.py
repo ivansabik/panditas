@@ -56,7 +56,6 @@ DataFlow(
             ],
             name="merge_facts_dims",
             merge_types=["outer", "outer", "outer", "left", "left"],
-            merge_keys=[(['id_1'], ['id_1']), (['id_1', 'id_3'], ['id_1', 'id_4']), (['id_1'], ['id_5'])],
         ),
         # Claim Count
         ConstantColumn(
