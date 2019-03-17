@@ -293,28 +293,62 @@ class DataSet(DataFlowStep):
 class MergeMultipleRule(DataFlowStep):
     data_sets = []
     merge_types = []
+    merge_keys = []
 
-    def __init__(self, data_sets=[], merge_types=[], name=None):
+    def __init__(self, data_sets=[], merge_types=[], merge_keys=None, name=None):
         """Short summary.
 
         Parameters
         ----------
-        data_sets : type
-            Description of parameter `data_sets`.
-        merge_types : type
-            Description of parameter `merge_types`.
+        data_sets : list
+            The Data Frame names on which the merges will be performed.
+        merge_types : list
+            Type of merge to make, possibilities: left, right, outer and inner.
+        merge_keys : list of tuples containing one list
+            If provided the keys on which the merges will be made
+
         name : type
             Description of parameter `name`.
 
         Returns
         -------
-        type
-            Description of returned object.
+        Data Frame
+            resulting DF from merges.
 
         """
         self.data_sets = data_sets
         self.merge_types = merge_types
+        self.merge_keys = merge_keys
         self.name = name
+        if not merge_keys:
+            merge_keys = list()
+            for idx, merge in enumerate(self.merge_types):
+                merge_keys.insert(idx, tuple())
+                merge_keys[idx][0] = list()
+                merge_keys[idx][1] = list()
+        else:
+            assert len(merge_keys) == len(
+                merge_types
+            ), "If merge keys are provided their lenght must match merge types lenght"
+            for keys in merge_keys:
+                assert isinstance(keys, tuple), "merge_keys must be a list of tuples"
+                assert isinstance(
+                    keys[0], list
+                ), "each tuple must contain two lists, object at [0] is not a list"
+                assert isinstance(
+                    keys[1], list
+                ), "each tuple must contain two lists, object at [1] is not a list"
+                assert (
+                    len(keys) == 2
+                ), "There can only be to lists in the tuple, one for right hand, one for left hand"
+                assert len(keys[0]) == len(
+                    keys[1]
+                ), "The number of columns or index level on which the join is made must be equal"
+
+    def __repr__(self):
+        return "Merge Multiple Rule on Data Flow: {} for data sets: {}".format(
+            self.name, self.data_sets
+        )
 
     def run(self):
         """Short summary.
@@ -330,9 +364,14 @@ class MergeMultipleRule(DataFlowStep):
 
         """
         df = DataFlow.get_output_df(self.data_sets.pop(0))
-        for key, data_set in enumerate(self.data_sets):
+        for idx, data_set in enumerate(self.data_sets):
             right_df = DataFlow.get_output_df(data_set)
-            df = df.merge(right_df, how=self.merge_types[key])
+            df = df.merge(
+                right_df,
+                how=self.merge_types[idx],
+                left_on=self.merge_keys[idx][0],
+                right_on=self.merge_keys[idx][1],
+            )
         self.output_data_set = DataFlow.save_output_df(df, self.name)
 
 
