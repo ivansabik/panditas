@@ -175,7 +175,7 @@ class ConditionalFill(TransformationRule):
 
         Parameters
         ----------
-        column : type
+        column : str
             Description of parameter `column`.
         action : type
             Description of parameter `action`.
@@ -606,23 +606,28 @@ class RemoveDuplicateRows(TransformationRule):
 class RenameColumns(TransformationRule):
     columns = None
 
-    def __init__(self):
+    def __init__(self, columns):
         """Short summary.
 
         Parameters
         ----------
+        columns : dict
+            dict where key is the present column name and the value is the desired column name
 
 
         Returns
         -------
-        type
-            Description of returned object.
 
         """
-        pass
+        self.columns = columns
+
+    def __repr__(self):
+        return "RenameColumns columns: {}".format(
+            self.columns
+        )
 
     def run(self):
-        """Short summary.
+        """Changes the DF column names using a dictionary
 
         Parameters
         ----------
@@ -630,11 +635,11 @@ class RenameColumns(TransformationRule):
 
         Returns
         -------
-        type
-            Description of returned object.
 
         """
-        pass
+        df = DataFlow.get_output_df(self.input_data_sets[-1])
+        df = df.rename(columns=self.columns)
+        self.output_data_set = DataFlow.save_output_df(df, self.name)
 
 
 class ReplaceText(TransformationRule):
