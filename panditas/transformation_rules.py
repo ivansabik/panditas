@@ -41,6 +41,7 @@ class CalculatedColumn(TransformationRule):
          - subtract
          - multiply
          - divide
+         # TODO mod division, cumsum, other?
 
         Parameters
         ----------
