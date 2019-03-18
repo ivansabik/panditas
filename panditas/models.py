@@ -304,8 +304,8 @@ class MergeMultipleRule(DataFlowStep):
             The Data Frame names on which the merges will be performed.
         merge_types : list
             Type of merge to make, possibilities: left, right, outer and inner.
-        merge_keys : list of tuples containing one list
-            If provided the keys on which the merges will be made
+        merge_keys : list of lists containing two lists
+            If provided the keys on which the merges will be made [[[left_on], [right_on]], [[left_on], [right_on]], ..]
 
         name : type
             Description of parameter `name`.
@@ -339,30 +339,13 @@ class MergeMultipleRule(DataFlowStep):
         None
 
         """
-        if not self.merge_keys:
-            merge_keys = list()
-            for idx, merge in enumerate(self.merge_types):
-                merge_keys.insert(idx, tuple())
-                merge_keys[idx][0] = list()
-                merge_keys[idx][1] = list()
-        else:
+        if self.merge_keys:
             assert len(self.merge_keys) == len(
                 self.merge_types
             ), "If merge keys are provided their lenght must match merge types lenght"
+            assert len(self.merge_keys) % 2 == 0, "Merge keys must come in pairs, one for right, one for left"
             for keys in self.merge_keys:
-                assert isinstance(keys, tuple), "merge_keys must be a list of tuples"
-                assert isinstance(
-                    keys[0], list
-                ), "each tuple must contain two lists, object at [0] is not a list"
-                assert isinstance(
-                    keys[1], list
-                ), "each tuple must contain two lists, object at [1] is not a list"
-                assert (
-                    len(keys) == 2
-                ), "There can only be to lists in the tuple, one for right hand, one for left hand"
-                assert len(keys[0]) == len(
-                    keys[1]
-                ), "The number of columns or index level on which the join is made must be equal"
+                assert isinstance(keys, list), "merge_keys must be a list of lists"
 
     def run(self):
         """Short summary.
@@ -380,11 +363,19 @@ class MergeMultipleRule(DataFlowStep):
         df = DataFlow.get_output_df(self.data_sets.pop(0))
         for idx, data_set in enumerate(self.data_sets):
             right_df = DataFlow.get_output_df(data_set)
+            try:
+                self.merge_keys[idx][0]
+            except TypeError:
+                left_on = None
+                right_on = None
+            else:
+                left_on = self.merge_keys[idx][0]
+                right_on = self.merge_keys[idx][1]
             df = df.merge(
                 right_df,
                 how=self.merge_types[idx],
-                left_on=self.merge_keys[idx][0],
-                right_on=self.merge_keys[idx][1],
+                left_on=left_on,
+                right_on=right_on,
             )
         self.output_data_set = DataFlow.save_output_df(df, self.name)
 
