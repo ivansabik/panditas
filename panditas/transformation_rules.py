@@ -523,20 +523,24 @@ class PivotTable(TransformationRule):
 class RemoveColumns(TransformationRule):
     column_names = None
 
-    def __init__(self):
+    def __init__(self, column_names):
         """Short summary.
 
         Parameters
         ----------
-
+            column_names : list
+                Names of columns to remove
 
         Returns
         -------
-        type
-            Description of returned object.
 
         """
-        pass
+        self.column_names = column_names
+
+    def __repr__(self):
+        return "RemoveColumns: {}".format(
+            self.column_names
+        )
 
     def run(self):
         """Short summary.
@@ -551,7 +555,10 @@ class RemoveColumns(TransformationRule):
             Description of returned object.
 
         """
-        pass
+        df = DataFlow.get_output_df(self.input_data_sets[-1])
+        for col in self.column_names:
+            del df[col]
+        self.output_data_set = DataFlow.save_output_df(df, self.name)
 
 
 class RemoveDuplicateRows(TransformationRule):
