@@ -5,6 +5,10 @@ from .models import DataFlow, TransformationRule
 CHECK_CONDITIONS = [
     "==",
     "!=",
+    ">",
+    ">=",
+    "<",
+    "=<"
     "contains",
     "does not contain",
     "starts with",
@@ -339,8 +343,35 @@ class ConstantColumn(TransformationRule):
 class FilterBy(TransformationRule):
     column_name = None
     filter_conditions = None
+    condition_values = None
 
-    def __init__(self):
+    def __init__(self, column_name, filter_conditions, condition_values):
+        """Short summary.
+
+        Parameters
+        ----------
+        column_name : str
+            Name of the column to be filtered
+        filter_conditions : list
+            Conditions to be filtered by
+        condition_values: list
+            values against which the conditions are applied
+
+        Returns
+        -------
+        None
+
+        """
+        self.column_name = column_name
+        self.filter_conditions = filter_conditions
+        self.condition_values = condition_values
+
+    def __repr__(self):
+        return "FilterBy column: {}, with conditions: {} and condition values {}".format(
+            self.column_name, self.filter_conditions, self.condition_values
+        )
+
+    def _validate_inputs(self):
         """Short summary.
 
         Parameters
@@ -353,10 +384,18 @@ class FilterBy(TransformationRule):
             Description of returned object.
 
         """
-        pass
+        assert isinstance(self.column_name, str)
+        assert isinstance(self.filter_conditions, list)
+        assert isinstance(self.condition_values, list)
+        for filter_condition in self.filter_conditions:
+            assert (filter_condition in CHECK_CONDITIONS,
+                    "Filter condition {} not found in CHECK_CONDITIONS".format(filter_condition))
+        for condition_value in self.condition_values:
+            assert (isinstance(condition_value, str) or isinstance(condition_value, int),
+                    isinstance(condition_value, float) or isinstance(condition_value, bool))
 
     def run(self):
-        """Short summary.
+        """Filter a dataframe by comparing one column to other column or values
 
         Parameters
         ----------
@@ -364,11 +403,28 @@ class FilterBy(TransformationRule):
 
         Returns
         -------
-        type
-            Description of returned object.
+        None
 
         """
-        pass
+        df = DataFlow.get_output_df(self.input_data_sets[-1])
+        for condition, value in zip(self.filter_conditions, self.condition_values):
+            if condition in ["==", '!=', ">", ">=", "<", "=<"]:
+                df = df.query(
+                    '{column} {condition} {value}'.format(column=self.column_name,
+                                                          condition=condition,
+                                                          value=value)
+                )
+            elif condition == "contains":
+                df = df[df[self.column_name].contains(value)]
+            elif condition == "starts with":
+                df = df[df[self.column_name].startswith(value)]
+            elif condition == "ends with":
+                df = df[df[self.column_name].endswith(value)]
+            elif condition == "does not contain":
+                df = df[~df[self.column_name].contains(value)]
+            elif condition == "does not start with":
+                df = df[~df[self.column_name].startswith(value)]
+        self.output_data_set = DataFlow.save_output_df(df, self.name)
 
 
 class FormatColumns(TransformationRule):
