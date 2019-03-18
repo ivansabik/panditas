@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 
 from .models import DataFlow, TransformationRule
 
@@ -24,6 +25,7 @@ GROUP_FUNCTIONS = [
     "sum",
     "unique",
 ]
+SUPPORTED_OPERATIONS = ["sum", "subtract", "multiply", "divide"]
 
 
 class CalculatedColumn(TransformationRule):
@@ -31,11 +33,22 @@ class CalculatedColumn(TransformationRule):
     expression = None
     insert_position = -1
 
-    def __init__(self):
+    def __init__(self, column_name, expression):
         """Short summary.
+
+        operations supported:
+         - sum
+         - subtract
+         - multiply
+         - divide
 
         Parameters
         ----------
+            column_name : str
+                name of the new column resulting from the calculation
+            expression : ordered dict
+                first key value pair is considered base, value can be empty with ""
+                next key value pairs needs the following structure: column operation (value)
 
 
         Returns
@@ -44,7 +57,8 @@ class CalculatedColumn(TransformationRule):
             Description of returned object.
 
         """
-        pass
+        self.column_name = column_name
+        self.expression = expression
 
     def _validate_expression(self):
         """Short summary.
@@ -59,7 +73,124 @@ class CalculatedColumn(TransformationRule):
             Description of returned object.
 
         """
-        pass
+        assert len(self.expression) > 0, "Expression ordered dict must not be empty"
+
+    @staticmethod
+    def check_column_arith(df, column_names):
+        """Checks if a column can be used for arithmetic operations, if not it tries to make it numeric
+
+        Parameters
+        ----------
+            df : Data Frame
+                dataframe to which the operation will apply
+            column_names : list
+                list of columns to check
+
+        Returns
+        -------
+        Data Frame
+            The dataframe recieved with the list of columns set to numeric if one or more was not
+
+        """
+        dt = df.dtypes
+        for col in column_names:
+            col_dt = dt[col]
+            if str(col_dt) not in "int" or str(col_dt) not in "float":
+                try:
+                    df[col] = pd.to_numeric(df[col])
+                except Exception:
+                    raise TypeError(
+                        "Column: {}, is not numeric and couldn't be set to".format(col)
+                    )
+        return df
+
+    def sum_columns(self, df, base_column, column_added):
+        """Adds one column to another of the same DF
+
+        Parameters
+        ----------
+            df : Data Frame
+                dataframe to which the operation will apply
+            base_column : str
+                name of the column to which the other column will be added
+            column_added : str
+                name of the column to be added to base column
+
+        Returns
+        -------
+        Data Frame
+            Resulting DF.
+
+        """
+        df = self.check_column_arith(df, [base_column, column_added])
+        df[base_column] = df[base_column] + df[column_added]
+        return df
+
+    def subtract_columns(self, df, base_column, column_subtracted):
+        """Subtracts one column to another of the same DF
+
+        Parameters
+        ----------
+            df : Data Frame
+                dataframe to which the operation will apply
+            base_column : str
+                name of the column to which the other column will be subtracted
+            column_subtracted : str
+                name of the column to be subtracted to base column
+
+        Returns
+        -------
+        Data Frame
+            Resulting DF.
+
+        """
+        df = self.check_column_arith(df, [base_column, column_subtracted])
+        df[base_column] = df[base_column] - df[column_subtracted]
+        return df
+
+    def multiply_columns(self, df, base_column, column_multiplied):
+        """Subtracts one column to another of the same DF
+
+        Parameters
+        ----------
+            df : Data Frame
+                dataframe to which the operation will apply
+            base_column : str
+                name of the column to which the other column will be multiplied
+            column_multiplied : str
+                name of the column to be multiplied to base column
+
+        Returns
+        -------
+        Data Frame
+            Resulting DF.
+
+        """
+        df = self.check_column_arith(df, [base_column, column_multiplied])
+        df[base_column] = df[base_column] * df[column_multiplied]
+        return df
+
+    def divide_columns(self, df, base_column, column_divisor):
+        """Subtracts one column to another of the same DF
+
+        Parameters
+        ----------
+            df : Data Frame
+                dataframe to which the operation will apply
+            base_column : str
+                name of the column to which the other column will be divided
+            column_divisor : str
+                name of the column to be divisor to base column
+
+        Returns
+        -------
+        Data Frame
+            Resulting DF.
+
+        """
+        df = self.check_column_arith(df, [base_column, column_divisor])
+        df[base_column] = df[base_column] / df[column_divisor]
+        return df
 
     def run(self):
         """Short summary.
@@ -74,7 +205,25 @@ class CalculatedColumn(TransformationRule):
             Description of returned object.
 
         """
-        pass
+        operations = {
+            "sum": self.sum_columns,
+            "subtract": self.subtract_columns,
+            "multiply": self.multiply_columns,
+        }
+        df = DataFlow.get_output_df(self.input_data_sets[-1])
+        first = True
+        for key, value in self.expression:
+            if first:
+                first = False
+                if value:
+                    # TODO implement lambda
+                    x = 6
+                else:
+                    df[self.column_name] = df[key]
+                base_column = self.column_name
+            else:
+                df = operations[value](df, base_column, key)
+        self.output_data_set = DataFlow.save_output_df(df, self.name)
 
 
 class ConditionalFill(TransformationRule):
