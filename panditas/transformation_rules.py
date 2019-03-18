@@ -374,20 +374,23 @@ class FilterBy(TransformationRule):
 class FormatColumns(TransformationRule):
     column_formats = None
 
-    def __init__(self):
+    def __init__(self, column_formats):
         """Short summary.
 
         Parameters
         ----------
-
+            column_formats : str or dict
+                if a string is passed the format will be applied to the whole DF
+                if a dict is passed the keys are the columns and the values the formatting for each column
 
         Returns
         -------
-        type
-            Description of returned object.
 
         """
-        pass
+        self.column_formats = column_formats
+
+    def __repr__(self):
+        return "FormatColumns column_formats: {}".format(self.column_formats)
 
     def run(self):
         """Short summary.
@@ -402,7 +405,9 @@ class FormatColumns(TransformationRule):
             Description of returned object.
 
         """
-        pass
+        df = DataFlow.get_output_df(self.input_data_sets[-1])
+        df = df.style.format(self.column_formats)
+        self.output_data_set = DataFlow.save_output_df(df, self.name)
 
 
 class MapValues(TransformationRule):
