@@ -681,25 +681,24 @@ class ReplaceText(TransformationRule):
 
 
 class SelectColumns(TransformationRule):
-    columns = None
+    keep_columns = None
 
-    def __init__(self):
-        """Short summary.
+    def __init__(self, keep_columns):
+        """when not all columns are desired
 
         Parameters
         ----------
-
+            keep_columns : list
+                list of column names to keep
 
         Returns
         -------
-        type
-            Description of returned object.
 
         """
-        pass
+        self.keep_columns = keep_columns
 
     def run(self):
-        """Short summary.
+        """Keep the columns of the DF in the list
 
         Parameters
         ----------
@@ -707,11 +706,11 @@ class SelectColumns(TransformationRule):
 
         Returns
         -------
-        type
-            Description of returned object.
 
         """
-        pass
+        df = DataFlow.get_output_df(self.input_data_sets[-1])
+        df = df[self.keep_columns]
+        self.output_data_set = DataFlow.save_output_df(df, self.name)
 
 
 class SortValuesBy(TransformationRule):
