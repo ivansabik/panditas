@@ -406,27 +406,34 @@ class FormatColumns(TransformationRule):
 
 
 class MapValues(TransformationRule):
-    default_map_value = None
-    map_column = None
-    map_values = None
+    column_name = None
+    map_logic = None
 
-    def __init__(self):
+    def __init__(self, column_name, map_logic):
         """Short summary.
 
         Parameters
         ----------
+            column_name : str
+                name of the column to affect
+            map_logic: dict or lambda
+                logic to transform current values to desired values
 
 
         Returns
         -------
-        type
-            Description of returned object.
 
         """
-        pass
+        self.column_name = column_name
+        self.map_logic = map_logic
+
+    def __repr__(self):
+        return "MapValues series: {}, map_logic: {}".format(
+            self.column_name, str(self.map_logic)
+        )
 
     def run(self):
-        """Short summary.
+        """Transforms a series, part of a DF, using a the map function with a dictionary or lambda function as arg
 
         Parameters
         ----------
@@ -434,11 +441,11 @@ class MapValues(TransformationRule):
 
         Returns
         -------
-        type
-            Description of returned object.
 
         """
-        pass
+        df = DataFlow.get_output_df(self.input_data_sets[-1])
+        df[self.column_name] = df[self.column_name].map(self.map_logic)
+        self.output_data_set = DataFlow.save_output_df(df, self.name)
 
 
 class PivotTable(TransformationRule):
