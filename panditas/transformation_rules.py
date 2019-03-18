@@ -556,21 +556,34 @@ class RemoveColumns(TransformationRule):
 
 class RemoveDuplicateRows(TransformationRule):
     columns_subset = None
+    keep = False
 
-    def __init__(self):
+    def __init__(self, columns_subset=None, keep=False):
         """Short summary.
 
         Parameters
         ----------
-
+        columns_subset : list
+            Names of the columns in which to search for duplicates
+        keep : str
+            if first or last, drop duplicates except first or last occurrence
 
         Returns
         -------
-        type
-            Description of returned object.
+        None
 
         """
-        pass
+        self.columns_subset = columns_subset
+        self.keep = keep
+
+    def __repr__(self):
+        return "RemoveDuplicateRows columns_subset: {}, keep: {}".format(
+            self.columns_subset, self.keep
+        )
+
+    def _validate_inputs(self):
+        if self.keep:
+            assert self.keep == "first" or self.keep == "last", "keep can only be 'first', 'last' or None"
 
     def run(self):
         """Short summary.
@@ -585,7 +598,9 @@ class RemoveDuplicateRows(TransformationRule):
             Description of returned object.
 
         """
-        pass
+        df = DataFlow.get_output_df(self.input_data_sets[-1])
+        df = df.drop_duplicates(subset=self.columns_subset, keep=self.keep)
+        self.output_data_set = DataFlow.save_output_df(df, self.name)
 
 
 class RenameColumns(TransformationRule):
