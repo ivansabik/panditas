@@ -697,6 +697,11 @@ class SelectColumns(TransformationRule):
         """
         self.keep_columns = keep_columns
 
+    def __repr__(self):
+        return "SelectColumns: {}".format(
+            self.keep_columns
+        )
+
     def run(self):
         """Keep the columns of the DF in the list
 
@@ -717,7 +722,7 @@ class SortValuesBy(TransformationRule):
     sort_columns = None
     sort_ascending = None
 
-    def __init__(self):
+    def __init__(self, sort_columns, sort_ascending):
         """Short summary.
 
         Parameters
@@ -730,7 +735,13 @@ class SortValuesBy(TransformationRule):
             Description of returned object.
 
         """
-        pass
+        self.sort_columns = sort_columns
+        self.sort_ascending = sort_ascending
+
+    def __repr__(self):
+        return "SortValuesBy: {}; ascending: {}".format(
+            self.sort_columns, self.sort_ascending
+        )
 
     def run(self):
         """Short summary.
@@ -745,4 +756,6 @@ class SortValuesBy(TransformationRule):
             Description of returned object.
 
         """
-        pass
+        df = DataFlow.get_output_df(self.input_data_sets[-1])
+        df = df.sort_values(by=self.sort_columns, ascending=self.sort_ascending)
+        self.output_data_set = DataFlow.save_output_df(df, self.name)
