@@ -545,9 +545,7 @@ class RemoveColumns(TransformationRule):
         self.column_names = column_names
 
     def __repr__(self):
-        return "RemoveColumns: {}".format(
-            self.column_names
-        )
+        return "RemoveColumns: {}".format(self.column_names)
 
     def run(self):
         """Short summary.
@@ -597,7 +595,9 @@ class RemoveDuplicateRows(TransformationRule):
 
     def _validate_inputs(self):
         if self.keep:
-            assert self.keep == "first" or self.keep == "last", "keep can only be 'first', 'last' or None"
+            assert (
+                self.keep == "first" or self.keep == "last"
+            ), "keep can only be 'first', 'last' or None"
 
     def run(self):
         """Short summary.
@@ -636,9 +636,7 @@ class RenameColumns(TransformationRule):
         self.columns = columns
 
     def __repr__(self):
-        return "RenameColumns columns: {}".format(
-            self.columns
-        )
+        return "RenameColumns columns: {}".format(self.columns)
 
     def run(self):
         """Changes the DF column names using a dictionary
@@ -712,9 +710,7 @@ class SelectColumns(TransformationRule):
         self.keep_columns = keep_columns
 
     def __repr__(self):
-        return "SelectColumns: {}".format(
-            self.keep_columns
-        )
+        return "SelectColumns: {}".format(self.keep_columns)
 
     def run(self):
         """Keep the columns of the DF in the list
