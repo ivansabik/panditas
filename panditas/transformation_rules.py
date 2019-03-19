@@ -29,11 +29,15 @@ SUPPORTED_OPERATIONS = ["sum", "subtract", "multiply", "divide"]
 
 
 class CalculatedColumn(TransformationRule):
-    column_name = None
+    base_column = None
     expression = None
-    insert_position = -1
+    axis = 0
+    # var for cumsum
+    skipna = True
+    # ver for mod
+    mod = 1
 
-    def __init__(self, column_name, expression):
+    def __init__(self, base_column, expression, axis=0, skipna=True, mod=None):
         """Short summary.
 
         operations supported:
@@ -41,15 +45,18 @@ class CalculatedColumn(TransformationRule):
          - subtract
          - multiply
          - divide
-         # TODO mod division, cumsum, other?
+         - cumsum
+         - mod
 
         Parameters
         ----------
-            column_name : str
-                name of the new column resulting from the calculation
+            base_column : str
+                name of the column (deosn't need to exist before) resulting from the operation
             expression : ordered dict
-                first key value pair is considered base, value can be empty with ""
-                next key value pairs needs the following structure: column operation (value)
+                value pairs needs the following structure: key: operation, value: column_name
+                    example: sum : column_1 will translate to base_column = base_column + column_1
+                for cumsum and mod the value is the name of a new column, if empty
+                the operation is performed on base_column
 
 
         Returns
@@ -58,8 +65,11 @@ class CalculatedColumn(TransformationRule):
             Description of returned object.
 
         """
-        self.column_name = column_name
+        self.base_column = base_column
         self.expression = expression
+        self.axis = axis
+        self.skipna = skipna
+        self.mod = mod
 
     def _validate_expression(self):
         """Short summary.
@@ -105,15 +115,13 @@ class CalculatedColumn(TransformationRule):
                     )
         return df
 
-    def sum_columns(self, df, base_column, column_added):
+    def sum_columns(self, df, column_added):
         """Adds one column to another of the same DF
 
         Parameters
         ----------
             df : Data Frame
                 dataframe to which the operation will apply
-            base_column : str
-                name of the column to which the other column will be added
             column_added : str
                 name of the column to be added to base column
 
@@ -123,19 +131,17 @@ class CalculatedColumn(TransformationRule):
             Resulting DF.
 
         """
-        df = self.check_column_arith(df, [base_column, column_added])
-        df[base_column] = df[base_column] + df[column_added]
+        df = self.check_column_arith(df, [self.base_column, column_added])
+        df[self.base_column] = df[self.base_column] + df[column_added]
         return df
 
-    def subtract_columns(self, df, base_column, column_subtracted):
+    def subtract_columns(self, df, column_subtracted):
         """Subtracts one column to another of the same DF
 
         Parameters
         ----------
             df : Data Frame
                 dataframe to which the operation will apply
-            base_column : str
-                name of the column to which the other column will be subtracted
             column_subtracted : str
                 name of the column to be subtracted to base column
 
@@ -145,19 +151,17 @@ class CalculatedColumn(TransformationRule):
             Resulting DF.
 
         """
-        df = self.check_column_arith(df, [base_column, column_subtracted])
-        df[base_column] = df[base_column] - df[column_subtracted]
+        df = self.check_column_arith(df, [self.base_column, column_subtracted])
+        df[self.base_column] = df[self.base_column] - df[column_subtracted]
         return df
 
-    def multiply_columns(self, df, base_column, column_multiplied):
+    def multiply_columns(self, df, column_multiplied):
         """Subtracts one column to another of the same DF
 
         Parameters
         ----------
             df : Data Frame
                 dataframe to which the operation will apply
-            base_column : str
-                name of the column to which the other column will be multiplied
             column_multiplied : str
                 name of the column to be multiplied to base column
 
@@ -167,19 +171,17 @@ class CalculatedColumn(TransformationRule):
             Resulting DF.
 
         """
-        df = self.check_column_arith(df, [base_column, column_multiplied])
-        df[base_column] = df[base_column] * df[column_multiplied]
+        df = self.check_column_arith(df, [self.base_column, column_multiplied])
+        df[self.base_column] = df[self.base_column] * df[column_multiplied]
         return df
 
-    def divide_columns(self, df, base_column, column_divisor):
+    def divide_columns(self, df, column_divisor):
         """Subtracts one column to another of the same DF
 
         Parameters
         ----------
             df : Data Frame
                 dataframe to which the operation will apply
-            base_column : str
-                name of the column to which the other column will be divided
             column_divisor : str
                 name of the column to be divisor to base column
 
@@ -189,8 +191,58 @@ class CalculatedColumn(TransformationRule):
             Resulting DF.
 
         """
-        df = self.check_column_arith(df, [base_column, column_divisor])
-        df[base_column] = df[base_column] / df[column_divisor]
+        df = self.check_column_arith(df, [self.base_column, column_divisor])
+        df[self.base_column] = df[self.base_column] / df[column_divisor]
+        return df
+
+    def mod_column(self, df, mod_col):
+        """Subtracts one column to another of the same DF
+
+        Parameters
+        ----------
+            df : Data Frame
+                dataframe to which the operation will apply
+            base_column : str
+                name of the column to which the other column will be divided
+            mod_col : str
+                column where the resulting values of applying mod will be stored
+
+        Returns
+        -------
+        Data Frame
+            Resulting DF.
+
+        """
+        df = self.check_column_arith(df, [self.base_column])
+        if mod_col:
+            df[mod_col] = df[self.base_column].mod(self.mod)
+        else:
+            df[self.base_column] = df[self.base_column].mod(self.mod)
+        return df
+
+    def cumsum_column(self, df, cumsum_col):
+        """Subtracts one column to another of the same DF
+
+        Parameters
+        ----------
+            df : Data Frame
+                dataframe to which the operation will apply
+            base_column : str
+                name of the column to which the other column will be divided
+            cumsum_col : str
+                name of the new column where the cumsum from base_column will be stored
+
+        Returns
+        -------
+        Data Frame
+            Resulting DF.
+
+        """
+        df = self.check_column_arith(df, [self.base_column])
+        if cumsum_col:
+            df[cumsum_col] = df[self.base_column].cumsum(skipna=self.skipna, axis=self.axis)
+        else:
+            df[self.base_column] = df[self.base_column].cumsum(skipna=self.skipna, axis=self.axis)
         return df
 
     def run(self):
@@ -210,20 +262,13 @@ class CalculatedColumn(TransformationRule):
             "sum": self.sum_columns,
             "subtract": self.subtract_columns,
             "multiply": self.multiply_columns,
+            "cumsum": self.cumsum_column,
         }
         df = DataFlow.get_output_df(self.input_data_sets[-1])
-        first = True
-        for key, value in self.expression:
-            if first:
-                first = False
-                if value:
-                    # TODO implement lambda
-                    x = 6
-                else:
-                    df[self.column_name] = df[key]
-                base_column = self.column_name
-            else:
-                df = operations[value](df, base_column, key)
+        if self.base_column not in df.columns:
+            df[self.base_column] = np.nan
+        for operation, column in self.expression:
+            df = operations[operation](df, column)
         self.output_data_set = DataFlow.save_output_df(df, self.name)
 
 
