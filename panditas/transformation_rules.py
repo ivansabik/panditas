@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 
 from .models import DataFlow, TransformationRule
 
@@ -28,18 +29,38 @@ GROUP_FUNCTIONS = [
     "sum",
     "unique",
 ]
+SUPPORTED_OPERATIONS = ["sum", "subtract", "multiply", "divide"]
 
 
 class CalculatedColumn(TransformationRule):
-    column_name = None
+    base_column = None
     expression = None
-    insert_position = -1
+    axis = 0
+    # var for cumsum
+    skipna = True
+    # ver for mod
+    mod = 1
 
-    def __init__(self):
+    def __init__(self, base_column, expression, axis=0, skipna=True, mod=None):
         """Short summary.
+
+        operations supported:
+         - sum
+         - subtract
+         - multiply
+         - divide
+         - cumsum
+         - mod
 
         Parameters
         ----------
+            base_column : str
+                name of the column (deosn't need to exist before) resulting from the operation
+            expression : ordered dict
+                value pairs needs the following structure: key: operation, value: column_name
+                    example: sum : column_1 will translate to base_column = base_column + column_1
+                for cumsum and mod the value is the name of a new column, if empty
+                the operation is performed on base_column
 
 
         Returns
@@ -48,7 +69,11 @@ class CalculatedColumn(TransformationRule):
             Description of returned object.
 
         """
-        pass
+        self.base_column = base_column
+        self.expression = expression
+        self.axis = axis
+        self.skipna = skipna
+        self.mod = mod
 
     def _validate_expression(self):
         """Short summary.
@@ -63,7 +88,166 @@ class CalculatedColumn(TransformationRule):
             Description of returned object.
 
         """
-        pass
+        assert len(self.expression) > 0, "Expression ordered dict must not be empty"
+
+    @staticmethod
+    def check_column_arith(df, column_names):
+        """Checks if a column can be used for arithmetic operations, if not it tries to make it numeric
+
+        Parameters
+        ----------
+            df : Data Frame
+                dataframe to which the operation will apply
+            column_names : list
+                list of columns to check
+
+        Returns
+        -------
+        Data Frame
+            The dataframe recieved with the list of columns set to numeric if one or more was not
+
+        """
+        dt = df.dtypes
+        for col in column_names:
+            col_dt = dt[col]
+            if str(col_dt) not in "int" or str(col_dt) not in "float":
+                try:
+                    df[col] = pd.to_numeric(df[col])
+                except Exception:
+                    raise TypeError(
+                        "Column: {}, is not numeric and couldn't be set to".format(col)
+                    )
+        return df
+
+    def sum_columns(self, df, column_added):
+        """Adds one column to another of the same DF
+
+        Parameters
+        ----------
+            df : Data Frame
+                dataframe to which the operation will apply
+            column_added : str
+                name of the column to be added to base column
+
+        Returns
+        -------
+        Data Frame
+            Resulting DF.
+
+        """
+        df = self.check_column_arith(df, [self.base_column, column_added])
+        df[self.base_column] = df[self.base_column] + df[column_added]
+        return df
+
+    def subtract_columns(self, df, column_subtracted):
+        """Subtracts one column to another of the same DF
+
+        Parameters
+        ----------
+            df : Data Frame
+                dataframe to which the operation will apply
+            column_subtracted : str
+                name of the column to be subtracted to base column
+
+        Returns
+        -------
+        Data Frame
+            Resulting DF.
+
+        """
+        df = self.check_column_arith(df, [self.base_column, column_subtracted])
+        df[self.base_column] = df[self.base_column] - df[column_subtracted]
+        return df
+
+    def multiply_columns(self, df, column_multiplied):
+        """Subtracts one column to another of the same DF
+
+        Parameters
+        ----------
+            df : Data Frame
+                dataframe to which the operation will apply
+            column_multiplied : str
+                name of the column to be multiplied to base column
+
+        Returns
+        -------
+        Data Frame
+            Resulting DF.
+
+        """
+        df = self.check_column_arith(df, [self.base_column, column_multiplied])
+        df[self.base_column] = df[self.base_column] * df[column_multiplied]
+        return df
+
+    def divide_columns(self, df, column_divisor):
+        """Subtracts one column to another of the same DF
+
+        Parameters
+        ----------
+            df : Data Frame
+                dataframe to which the operation will apply
+            column_divisor : str
+                name of the column to be divisor to base column
+
+        Returns
+        -------
+        Data Frame
+            Resulting DF.
+
+        """
+        df = self.check_column_arith(df, [self.base_column, column_divisor])
+        df[self.base_column] = df[self.base_column] / df[column_divisor]
+        return df
+
+    def mod_column(self, df, mod_col):
+        """Subtracts one column to another of the same DF
+
+        Parameters
+        ----------
+            df : Data Frame
+                dataframe to which the operation will apply
+            base_column : str
+                name of the column to which the other column will be divided
+            mod_col : str
+                column where the resulting values of applying mod will be stored
+
+        Returns
+        -------
+        Data Frame
+            Resulting DF.
+
+        """
+        df = self.check_column_arith(df, [self.base_column])
+        if mod_col:
+            df[mod_col] = df[self.base_column].mod(self.mod)
+        else:
+            df[self.base_column] = df[self.base_column].mod(self.mod)
+        return df
+
+    def cumsum_column(self, df, cumsum_col):
+        """Subtracts one column to another of the same DF
+
+        Parameters
+        ----------
+            df : Data Frame
+                dataframe to which the operation will apply
+            base_column : str
+                name of the column to which the other column will be divided
+            cumsum_col : str
+                name of the new column where the cumsum from base_column will be stored
+
+        Returns
+        -------
+        Data Frame
+            Resulting DF.
+
+        """
+        df = self.check_column_arith(df, [self.base_column])
+        if cumsum_col:
+            df[cumsum_col] = df[self.base_column].cumsum(skipna=self.skipna, axis=self.axis)
+        else:
+            df[self.base_column] = df[self.base_column].cumsum(skipna=self.skipna, axis=self.axis)
+        return df
 
     def run(self):
         """Short summary.
@@ -78,7 +262,18 @@ class CalculatedColumn(TransformationRule):
             Description of returned object.
 
         """
-        pass
+        operations = {
+            "sum": self.sum_columns,
+            "subtract": self.subtract_columns,
+            "multiply": self.multiply_columns,
+            "cumsum": self.cumsum_column,
+        }
+        df = DataFlow.get_output_df(self.input_data_sets[-1])
+        if self.base_column not in df.columns:
+            df[self.base_column] = np.nan
+        for operation, column in self.expression:
+            df = operations[operation](df, column)
+        self.output_data_set = DataFlow.save_output_df(df, self.name)
 
 
 class ConditionalFill(TransformationRule):
@@ -179,7 +374,7 @@ class ConditionalFill(TransformationRule):
 
         Parameters
         ----------
-        column : type
+        column : str
             Description of parameter `column`.
         action : type
             Description of parameter `action`.
@@ -430,20 +625,23 @@ class FilterBy(TransformationRule):
 class FormatColumns(TransformationRule):
     column_formats = None
 
-    def __init__(self):
+    def __init__(self, column_formats):
         """Short summary.
 
         Parameters
         ----------
-
+            column_formats : str or dict
+                if a string is passed the format will be applied to the whole DF
+                if a dict is passed the keys are the columns and the values the formatting for each column
 
         Returns
         -------
-        type
-            Description of returned object.
 
         """
-        pass
+        self.column_formats = column_formats
+
+    def __repr__(self):
+        return "FormatColumns column_formats: {}".format(self.column_formats)
 
     def run(self):
         """Short summary.
@@ -458,31 +656,40 @@ class FormatColumns(TransformationRule):
             Description of returned object.
 
         """
-        pass
+        df = DataFlow.get_output_df(self.input_data_sets[-1])
+        df = df.style.format(self.column_formats)
+        self.output_data_set = DataFlow.save_output_df(df, self.name)
 
 
 class MapValues(TransformationRule):
-    default_map_value = None
-    map_column = None
-    map_values = None
+    column_name = None
+    map_logic = None
 
-    def __init__(self):
+    def __init__(self, column_name, map_logic):
         """Short summary.
 
         Parameters
         ----------
+            column_name : str
+                name of the column to affect
+            map_logic: dict or lambda
+                logic to transform current values to desired values
 
 
         Returns
         -------
-        type
-            Description of returned object.
 
         """
-        pass
+        self.column_name = column_name
+        self.map_logic = map_logic
+
+    def __repr__(self):
+        return "MapValues series: {}, map_logic: {}".format(
+            self.column_name, str(self.map_logic)
+        )
 
     def run(self):
-        """Short summary.
+        """Transforms a series, part of a DF, using a the map function with a dictionary or lambda function as arg
 
         Parameters
         ----------
@@ -490,11 +697,11 @@ class MapValues(TransformationRule):
 
         Returns
         -------
-        type
-            Description of returned object.
 
         """
-        pass
+        df = DataFlow.get_output_df(self.input_data_sets[-1])
+        df[self.column_name] = df[self.column_name].map(self.map_logic)
+        self.output_data_set = DataFlow.save_output_df(df, self.name)
 
 
 class PivotTable(TransformationRule):
@@ -579,20 +786,22 @@ class PivotTable(TransformationRule):
 class RemoveColumns(TransformationRule):
     column_names = None
 
-    def __init__(self):
+    def __init__(self, column_names):
         """Short summary.
 
         Parameters
         ----------
-
+            column_names : list
+                Names of columns to remove
 
         Returns
         -------
-        type
-            Description of returned object.
 
         """
-        pass
+        self.column_names = column_names
+
+    def __repr__(self):
+        return "RemoveColumns: {}".format(self.column_names)
 
     def run(self):
         """Short summary.
@@ -607,7 +816,10 @@ class RemoveColumns(TransformationRule):
             Description of returned object.
 
         """
-        pass
+        df = DataFlow.get_output_df(self.input_data_sets[-1])
+        for col in self.column_names:
+            del df[col]
+        self.output_data_set = DataFlow.save_output_df(df, self.name)
 
 
 class RemoveDuplicateRows(TransformationRule):
@@ -639,7 +851,9 @@ class RemoveDuplicateRows(TransformationRule):
 
     def _validate_inputs(self):
         if self.keep:
-            assert self.keep == "first" or self.keep == "last", "keep can only be 'first', 'last' or None"
+            assert (
+                self.keep == "first" or self.keep == "last"
+            ), "keep can only be 'first', 'last' or None"
 
     def run(self):
         """Short summary.
@@ -662,23 +876,26 @@ class RemoveDuplicateRows(TransformationRule):
 class RenameColumns(TransformationRule):
     columns = None
 
-    def __init__(self):
+    def __init__(self, columns):
         """Short summary.
 
         Parameters
         ----------
+        columns : dict
+            dict where key is the present column name and the value is the desired column name
 
 
         Returns
         -------
-        type
-            Description of returned object.
 
         """
-        pass
+        self.columns = columns
+
+    def __repr__(self):
+        return "RenameColumns columns: {}".format(self.columns)
 
     def run(self):
-        """Short summary.
+        """Changes the DF column names using a dictionary
 
         Parameters
         ----------
@@ -686,11 +903,11 @@ class RenameColumns(TransformationRule):
 
         Returns
         -------
-        type
-            Description of returned object.
 
         """
-        pass
+        df = DataFlow.get_output_df(self.input_data_sets[-1])
+        df = df.rename(columns=self.columns)
+        self.output_data_set = DataFlow.save_output_df(df, self.name)
 
 
 class ReplaceText(TransformationRule):
@@ -732,25 +949,27 @@ class ReplaceText(TransformationRule):
 
 
 class SelectColumns(TransformationRule):
-    columns = None
+    keep_columns = None
 
-    def __init__(self):
-        """Short summary.
+    def __init__(self, keep_columns):
+        """when not all columns are desired
 
         Parameters
         ----------
-
+            keep_columns : list
+                list of column names to keep
 
         Returns
         -------
-        type
-            Description of returned object.
 
         """
-        pass
+        self.keep_columns = keep_columns
+
+    def __repr__(self):
+        return "SelectColumns: {}".format(self.keep_columns)
 
     def run(self):
-        """Short summary.
+        """Keep the columns of the DF in the list
 
         Parameters
         ----------
@@ -758,18 +977,18 @@ class SelectColumns(TransformationRule):
 
         Returns
         -------
-        type
-            Description of returned object.
 
         """
-        pass
+        df = DataFlow.get_output_df(self.input_data_sets[-1])
+        df = df[self.keep_columns]
+        self.output_data_set = DataFlow.save_output_df(df, self.name)
 
 
 class SortValuesBy(TransformationRule):
     sort_columns = None
     sort_ascending = None
 
-    def __init__(self):
+    def __init__(self, sort_columns, sort_ascending):
         """Short summary.
 
         Parameters
@@ -782,7 +1001,13 @@ class SortValuesBy(TransformationRule):
             Description of returned object.
 
         """
-        pass
+        self.sort_columns = sort_columns
+        self.sort_ascending = sort_ascending
+
+    def __repr__(self):
+        return "SortValuesBy: {}; ascending: {}".format(
+            self.sort_columns, self.sort_ascending
+        )
 
     def run(self):
         """Short summary.
@@ -797,4 +1022,6 @@ class SortValuesBy(TransformationRule):
             Description of returned object.
 
         """
-        pass
+        df = DataFlow.get_output_df(self.input_data_sets[-1])
+        df = df.sort_values(by=self.sort_columns, ascending=self.sort_ascending)
+        self.output_data_set = DataFlow.save_output_df(df, self.name)
